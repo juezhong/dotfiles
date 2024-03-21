@@ -1,0 +1,223 @@
+#export ALL_PROXY=socks5://172.23.128.1:10808
+# p10k 最先加载就会先显示 zsh 主题，但插件还是会有延迟一点（因为顺序问题）（大部分延迟因为末尾注释的 conda 脚本
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+# End of Powerlevel10k
+
+
+### Added by Zinit's installer
+if [[ ! -f $HOME/.local/share/zinit/zinit.git/zinit.zsh ]]; then
+    print -P "%F{33} %F{220}Installing %F{33}ZDHARMA-CONTINUUM%F{220} Initiative Plugin Manager (%F{33}zdharma-continuum/zinit%F{220})…%f"
+    command mkdir -p "$HOME/.local/share/zinit" && command chmod g-rwX "$HOME/.local/share/zinit"
+    command git clone https://github.com/zdharma-continuum/zinit "$HOME/.local/share/zinit/zinit.git" && \
+        print -P "%F{33} %F{34}Installation successful.%f%b" || \
+        print -P "%F{160} The clone has failed.%f%b"
+fi
+
+source "$HOME/.local/share/zinit/zinit.git/zinit.zsh"
+autoload -Uz _zinit
+(( ${+_comps} )) && _comps[zinit]=_zinit
+
+
+# Load a few important annexes, without Turbo
+# (this is currently required for annexes)
+zinit light-mode for \
+    zdharma-continuum/zinit-annex-as-monitor \
+    zdharma-continuum/zinit-annex-bin-gem-node \
+    zdharma-continuum/zinit-annex-patch-dl \
+    zdharma-continuum/zinit-annex-rust
+
+### End of Zinit's installer chunk
+
+### Myself Config ------------------------------------------------
+
+
+### Moved
+### Lines configured by zsh-newuser-install
+HISTFILE=~/.histfile
+HISTSIZE=99999
+SAVEHIST=99999
+### End of lines configured by zsh-newuser-install
+
+# Set case a/A
+# 忽略补全大小写
+autoload -Uz compinit && compinit -u
+zstyle ':completion:*' matcher-list 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*'
+
+
+# Some comment
+# Turbo Mode (Zsh >= 5.3)：
+# Zinit 中所谓的 Turbo Mode，其实就是插件延迟加载功能，
+# 更确切的说，就是使用ice修饰符的wait选项进行插件加载。比如：
+# PS1="READY > "
+# zinit ice wait'!0'
+# zinit load halfo/lambda-mod-zsh-theme
+# 上述命令表示终端在加载完成.zshrc文件并成功显示第一个 prompt 时，
+# 加载插件halfo/lambda-mod-zsh-theme。
+# 实际上插件真正进行加载大约是在提示符READY >出现后的 1ms 内。
+# 更多关于 ice 的用法参见 https://github.com/zdharma-continuum/zinit#ice-modifiers
+# 示例：lucid 参数是为了开启 wait 静默输出
+# zinit ice wait lucid
+# zinit load zdharma-continuum/history-search-multi-word
+
+# 全局 ice 选项：light-mode (以 light 模式加载)
+#  zinit light-mode for \
+#     lucid wait zsh-users/zsh-completions \ # 仅适用于此插件的 ice 选项：lucid (静默延迟加载消息), wait (延迟加载)
+#     zsh-users/zsh-syntax-highlighting # 以 light 模式 (全局 ice 选项) 正常加载
+# 不要直接复制上面的代码，因为有语法错误 (不允许在 \ 后面写注释)，无法运行。
+# 不设置任何 ice 选项，依次加载每个插件。
+#  zinit for \
+#      zsh-users/zsh-completions \
+#      zsh-users/zsh-syntax-highlighting
+# End of comment
+
+
+### Plugins
+
+# prompt 主题
+zinit ice depth 1
+zinit light romkatv/powerlevel10k
+
+# 命令高亮
+zinit ice wait lucid depth 1
+zinit light zsh-users/zsh-syntax-highlighting
+
+# 命令补全
+#zinit ice wait lucid depth 1
+#zinit ice depth 1
+#zinit light zsh-users/zsh-completions
+
+# 历史命令补全
+zinit ice depth 1
+zinit light zsh-users/zsh-autosuggestions
+
+# 替换默认的补全菜单选择，使用了 fzf 需提前安装
+zinit ice wait lucid depth 1
+zinit light Aloxaf/fzf-tab
+
+# fzf
+# 刚好借助 zinit 管理 fzf 的脚本，不然只单独安装二进制包没有自动补全和按键绑定
+# 使用 ice 修饰符 atclone 在克隆完成后执行一条命令
+zinit ice wait lucid atclone"bash $HOME/.local/share/zinit/plugins/junegunn---fzf/install" depth 1 
+zinit light junegunn/fzf
+
+# 目录导航工具，适用于过去访问过的每个目录
+# 该插件允许根据模糊匹配和访问该目录的频率导航到以前去过的任何目录
+zinit ice wait lucid depth 1
+zinit light rupa/z
+
+### End of Plugins
+### alias
+# 考虑将一些实用性的命令写成 xx.zsh 文件的形式
+# 用作 zsh 的函数，设置快捷键调用
+
+alias j='z'
+alias ls='lsd'
+alias ls='ls --color=auto'
+alias ll='ls -lh'
+alias la='ls -alh'
+alias grep='grep --color=auto'
+alias rg='rg -S'
+alias pp='export ALL_PROXY=socks5://192.168.123.1:10808'
+alias up='unset ALL_PROXY'
+alias cb='cmake -B build'
+alias cc='cmake --build build'
+alias rb='rm -r build'
+alias ttytheme='ttyscheme -a $(ttyscheme -l | fzf)'
+
+# alias xclip='xclip -selection clipboard -rmlastnl'
+# xclip 的相关寄存器
+# primary: 鼠标选中某些单词即是使用了 primary 如果取消选中，则 primary 就被清空了
+# Shift + Insert 使用的是 primary
+# Ctrl + Insert 使用的 剪切板
+# clipboard: 剪切板，不会被清除
+alias xc='xclip -selection clipboard -rmlastnl && xclip -o -selection clipboard | xclip -selection primary -rmlastnl'
+alias xp='xclip -o -selection clipboard'
+alias vi='nvim'
+alias v='nvim'
+alias win='sftp liyunfeng@192.168.123.1'
+
+# find / (whole disk) file to use
+alias rf='fd --color=always --hidden \
+	--exclude boot \
+	--exclude dev \
+	--exclude lost+found \
+	--exclude proc \
+	--exclude .git \
+	. / | fzf --ansi -0 | xc && xp'
+
+### use neovim to edit any file
+alias rv='fd --color=always --hidden \
+	--exclude boot \
+	--exclude dev \
+	--exclude lost+found \
+	--exclude proc \
+	--exclude .git \
+	. / | fzf --ansi| xargs -I {} nvim {}'
+
+### find home file to use
+alias hf='fd --color=always --hidden --exclude .git . '/home/liyunfeng' | fzf --ansi -0 | xc && xp'
+
+### use neovim to edit home file
+alias hv='fd --color=always --hidden --exclude .git -t f . '/home/liyunfeng' | fzf --ansi | xargs -I {} nvim {}'
+
+### find current directory file
+alias cf='fd --color=always --hidden --exclude .git | fzf --ansi -0 | xc && xp'
+
+### use neovim to edit current directory file
+alias cv='fd --color=always --hidden --exclude .git | fzf --ansi | xargs -I {} nvim {}'
+
+### use thunar(file manager) to open directory
+alias open='fd --color=always --hidden --exclude .git -t d | fzf --ansi | xargs thunar'
+
+### ues pacmd switch audio output
+alias pacmdswitcher='pacmd set-default-sink $(pacmd list-sinks | rg "name: <(.*)>" -0 | cut -d "<" -f 2 | cut -d ">" -f 1 | fzf)'
+
+#alias setproxy=' \
+#	export http_proxy="http://127.0.0.1:10809" \
+#	&& export https_proxy="http://127.0.0.1:10809" \
+#	&& export ALL_PROXY="socks5://127.0.0.1:10808" \
+#	&& env | rg -S proxy'
+#alias unsetproxy='unset http_proxy https_proxy ALL_PROXY'
+
+
+### End of alias
+
+### End of myself config ------------------------------------------------
+
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+##########################
+# 注：p10k 需要的字体仓库
+# https://github.com/romkatv/powerlevel10k-media
+# 克隆后手动安装，步骤
+# mkdir /usr/share/fonts/{font-name}
+# mv {fonts} /usr/share/fonts/{font-name}
+# fc-cache
+# 在当前目录建立字体数据缓存
+# fc-cache Build font information caches in [dirs]
+
+# 借助 zinit 管理 fzf 运行克隆下来仓库里面的 install 脚本自动添加的
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+### End of Zinit's installer chunk
+### End of Zinit's installer chunk
+### End of Zinit's installer chunk
+
+# Load a few important annexes, without Turbo
+# (this is currently required for annexes)
+zinit light-mode for \
+    zdharma-continuum/zinit-annex-as-monitor \
+    zdharma-continuum/zinit-annex-bin-gem-node \
+    zdharma-continuum/zinit-annex-patch-dl \
+    zdharma-continuum/zinit-annex-rust
+
+### End of Zinit's installer chunk
+
+export PATH=$PATH:/home/liyunfeng/.local/share/nvim/mason/bin
