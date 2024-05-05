@@ -231,7 +231,11 @@ return {
 
         -- `:` 命令模式下的补全配置
         cmp.setup.cmdline(":", {
-            mapping = cmp.mapping.preset.cmdline(),
+            mapping = cmp.mapping.preset.cmdline({
+                -- 中止当前的补全操作
+                -- ['<C-g>'] = cmp.mapping.abort(),
+                -- 以上快捷键不生效，只能使用 C-e 终止补全
+            }),
             sources = cmp.config.sources(
                 -- group 1
                 {

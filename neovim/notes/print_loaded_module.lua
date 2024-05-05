@@ -4,4 +4,3 @@ for moduleName, modulePath in ipairs(package.loaded) do
     -- print(moduleName .. ": " .. modulePath)
     vim.api.nvim_out_write(moduleName .. ": " .. modulePath .. "\n")
 end
-

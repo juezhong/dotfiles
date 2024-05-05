@@ -17,7 +17,7 @@ return {
     config = function()
         local treesitter_config = require("nvim-treesitter.configs")
         treesitter_config.setup({
-            ensure_installed = { "c", "cpp", "lua", "vim", "vimdoc", "query" },
+            ensure_installed = { "c", "cpp", "lua", "vim", "vimdoc", "query", "json" },
             highlight = { enable = true },
             indent = { enable = true },
             -- 根据语法中的命名节点进行增量选择

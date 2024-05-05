@@ -1,6 +1,3 @@
-if vim.loader then
-    vim.loader.enable()
-end
 -- 使用 require 加载文件模块的方式不用写完整的相对路径
 -- 因为默认使用 lua 作为 root 目录
 -- 完整路径 lua/liyunfeng/core/options

@@ -54,7 +54,7 @@ return {
         -- FlashCurrent      IncSearch    current match
         vim.cmd("highlight link FlashCurrent ChineseColorLangHuaGreenBackground") -- 搜索时光标所在的匹配项位置背景
         -- FlashLabel        Substitute   jump label
-        vim.cmd("highlight link FlashLabel ChineseColorPinLanBackground") -- 搜索时匹配的 label 的背景，如果设置了彩虹色则无效
+        vim.cmd("highlight link FlashLabel ChineseColorPinLanBackground") -- 搜索时匹配的 label 的背景，如果设置了彩虹色则无效 line 131
         -- 搜索时候的颜色仅需要配置以上四种即可
         -- FlashPrompt       MsgArea      prompt
         -- FlashPromptIcon   Special      prompt icon

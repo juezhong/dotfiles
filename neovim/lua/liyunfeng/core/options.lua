@@ -24,6 +24,8 @@ vim.opt.termguicolors = true
 -- vim.opt.background = "light"
 vim.opt.background = "dark"
 vim.opt.signcolumn = "yes"
+-- 光标样式
+vim.opt.guicursor = "a:blinkon100"
 -- 右侧参考线
 vim.opt.colorcolumn = "160"
 -- 搜索大小写不敏感，除非包含大写
@@ -36,7 +38,7 @@ vim.opt.wildmenu = true
 -- 不要将信息传递给 "正在完成的菜单"。
 vim.o.shortmess = vim.o.shortmess .. 'c'
 -- 补全最多显示10行
-vim.o.pumheight = 10
+-- vim.o.pumheight = 10
 -- 自动加载外部修改
 vim.opt.autoread = true
 -- 禁止折行

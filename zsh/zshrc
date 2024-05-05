@@ -102,7 +102,7 @@ zinit light Aloxaf/fzf-tab
 # fzf
 # 刚好借助 zinit 管理 fzf 的脚本，不然只单独安装二进制包没有自动补全和按键绑定
 # 使用 ice 修饰符 atclone 在克隆完成后执行一条命令
-zinit ice wait lucid atclone"bash $HOME/.local/share/zinit/plugins/junegunn---fzf/install" depth 1 
+zinit ice wait lucid atclone "bash $HOME/.local/share/zinit/plugins/junegunn---fzf/install" depth 1 
 zinit light junegunn/fzf
 
 # 目录导航工具，适用于过去访问过的每个目录
@@ -115,19 +115,20 @@ zinit light rupa/z
 # 考虑将一些实用性的命令写成 xx.zsh 文件的形式
 # 用作 zsh 的函数，设置快捷键调用
 
-alias j='z'
 alias ls='lsd'
 alias ls='ls --color=auto'
 alias ll='ls -lh'
 alias la='ls -alh'
 alias grep='grep --color=auto'
 alias rg='rg -S'
+alias tree='tree -C'
 alias pp='export ALL_PROXY=socks5://192.168.123.1:10808'
 alias up='unset ALL_PROXY'
 alias cb='cmake -B build'
 alias cc='cmake --build build'
 alias rb='rm -r build'
 alias ttytheme='ttyscheme -a $(ttyscheme -l | fzf)'
+alias cman='man -L zh_CN'
 
 # alias xclip='xclip -selection clipboard -rmlastnl'
 # xclip 的相关寄存器
@@ -137,9 +138,9 @@ alias ttytheme='ttyscheme -a $(ttyscheme -l | fzf)'
 # clipboard: 剪切板，不会被清除
 alias xc='xclip -selection clipboard -rmlastnl && xclip -o -selection clipboard | xclip -selection primary -rmlastnl'
 alias xp='xclip -o -selection clipboard'
-alias vi='nvim'
-alias v='nvim'
-alias win='sftp liyunfeng@192.168.123.1'
+alias vim='nvim'
+alias vi='vim'
+alias v='vi'
 
 # find / (whole disk) file to use
 alias rf='fd --color=always --hidden \
@@ -157,7 +158,7 @@ alias rv='fd --color=always --hidden \
 	--exclude lost+found \
 	--exclude proc \
 	--exclude .git \
-	. / | fzf --ansi| xargs -I {} nvim {}'
+	. / | fzf --ansi| xargs -I {} vim {}'
 
 ### find home file to use
 alias hf='fd --color=always --hidden --exclude .git . '/home/liyunfeng' | fzf --ansi -0 | xc && xp'
@@ -187,6 +188,14 @@ alias pacmdswitcher='pacmd set-default-sink $(pacmd list-sinks | rg "name: <(.*)
 
 ### End of alias
 
+### Functions
+function cdd
+{
+    destination_dir=$(dirname $1 -z)
+    chdir $destination_dir
+}
+### End of functions
+
 ### End of myself config ------------------------------------------------
 
 
@@ -206,18 +215,7 @@ alias pacmdswitcher='pacmd set-default-sink $(pacmd list-sinks | rg "name: <(.*)
 # 借助 zinit 管理 fzf 运行克隆下来仓库里面的 install 脚本自动添加的
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-### End of Zinit's installer chunk
-### End of Zinit's installer chunk
-### End of Zinit's installer chunk
-
-# Load a few important annexes, without Turbo
-# (this is currently required for annexes)
-zinit light-mode for \
-    zdharma-continuum/zinit-annex-as-monitor \
-    zdharma-continuum/zinit-annex-bin-gem-node \
-    zdharma-continuum/zinit-annex-patch-dl \
-    zdharma-continuum/zinit-annex-rust
-
-### End of Zinit's installer chunk
-
-export PATH=$PATH:/home/liyunfeng/.local/share/nvim/mason/bin
+export PATH=$PATH:~/.local/share/nvim/mason/bin/
+export LANG=zh_CN.UTF8
+export LANGUAGE=zh_CN:en_US
+export EDITOR=nvim
