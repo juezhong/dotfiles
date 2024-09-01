@@ -110,34 +110,40 @@ return {
         --  * <leader>fe edit file
         -- and hide <leader>1
 
-        wk.register({
-            f = {
-                name = "Files", -- optional group name
-                -- f = { "<cmd>Telescope find_files<cr>", "Find File" }, -- create a binding with label
-                -- r = { "<cmd>Telescope oldfiles<cr>", "Open Recent File", noremap=false, buffer = 123 }, -- additional options for creating the keymap
-                -- n = { "New File" }, -- just a label. don't create any mapping
-                -- e = "Edit File", -- same as above
-                -- ["1"] = "which_key_ignore",  -- special label to hide it in the popup
-                -- b = { function() print("bar") end, "Foobar" } -- you can also pass functions!
-                -- 这部分与 telescope 的钩子函数设置绑定不同，这里使用的是 <cmd> 也就是 : 模式的命令，尝试后发现不能向钩子一样使用
-                -- f = {"<cmd>Telescope find_files<cr>", "telescope 的内置函数“查找文件”函数按键绑定"},
-                -- g = {"<cmd>Telescope live_grep<cr>", "telescope 的内置函数“实时文本匹配”函数按键绑定"},
-            },
-            t = {
-                name = "Telescope",
-            },
-            c = {
-                name = "Colorizer",
-                -- a = {"<cmd>ColorizerAttachToBuffer<cr>", "附加到当前缓冲区，并以设置（或默认设置）中指定的设置开始高亮或默认设置）开始高亮显示"},
-                -- d = {"<cmd>ColorizerDetachFromBuffer<cr>", "停止高亮显示当前缓冲区（脱离）"},
-                -- r = {"<cmd>ColorizerReloadAllBuffers<cr>", "使用设置中的新设置（或默认设置）重新加载所有高亮显示的缓冲区"},
-                -- t = {"<cmd>ColorizerToggle<cr>", "切换当前缓冲区的高亮显示"},
-            },
-            b = {
-                name = "Buffer",
-                -- r = {"<cmd>ColorizerReloadAllBuffers<cr>", "使用设置中的新设置（或默认设置）重新加载所有高亮显示的缓冲区"},
-                -- t = {"<cmd>ColorizerToggle<cr>", "切换当前缓冲区的高亮显示"},
-            },
-        }, { prefix = "<leader>" })
+        -- wk.register({
+        --     f = {
+        --         name = "Files", -- optional group name
+        --         -- f = { "<cmd>Telescope find_files<cr>", "Find File" }, -- create a binding with label
+        --         -- r = { "<cmd>Telescope oldfiles<cr>", "Open Recent File", noremap=false, buffer = 123 }, -- additional options for creating the keymap
+        --         -- n = { "New File" }, -- just a label. don't create any mapping
+        --         -- e = "Edit File", -- same as above
+        --         -- ["1"] = "which_key_ignore",  -- special label to hide it in the popup
+        --         -- b = { function() print("bar") end, "Foobar" } -- you can also pass functions!
+        --         -- 这部分与 telescope 的钩子函数设置绑定不同，这里使用的是 <cmd> 也就是 : 模式的命令，尝试后发现不能向钩子一样使用
+        --         -- f = {"<cmd>Telescope find_files<cr>", "telescope 的内置函数“查找文件”函数按键绑定"},
+        --         -- g = {"<cmd>Telescope live_grep<cr>", "telescope 的内置函数“实时文本匹配”函数按键绑定"},
+        --     },
+        --     t = {
+        --         name = "Telescope",
+        --     },
+        --     c = {
+        --         name = "Colorizer",
+        --         -- a = {"<cmd>ColorizerAttachToBuffer<cr>", "附加到当前缓冲区，并以设置（或默认设置）中指定的设置开始高亮或默认设置）开始高亮显示"},
+        --         -- d = {"<cmd>ColorizerDetachFromBuffer<cr>", "停止高亮显示当前缓冲区（脱离）"},
+        --         -- r = {"<cmd>ColorizerReloadAllBuffers<cr>", "使用设置中的新设置（或默认设置）重新加载所有高亮显示的缓冲区"},
+        --         -- t = {"<cmd>ColorizerToggle<cr>", "切换当前缓冲区的高亮显示"},
+        --     },
+        --     b = {
+        --         name = "Buffer",
+        --         -- r = {"<cmd>ColorizerReloadAllBuffers<cr>", "使用设置中的新设置（或默认设置）重新加载所有高亮显示的缓冲区"},
+        --         -- t = {"<cmd>ColorizerToggle<cr>", "切换当前缓冲区的高亮显示"},
+        --     },
+        -- }, { prefix = "<leader>" })
+        wk.add({
+            { "<leader>b", group = "Buffer" },
+            { "<leader>c", group = "Colorizer" },
+            { "<leader>f", group = "Files" },
+            { "<leader>t", group = "Telescope" },
+        })
     end
 }

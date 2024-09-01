@@ -21,8 +21,7 @@ vim.opt.cursorline = true
 -- 背景高亮颜色 dark or light default dark
 -- 侧边列显示符号
 vim.opt.termguicolors = true
--- vim.opt.background = "light"
-vim.opt.background = "dark"
+-- background setting move to theme.lua
 vim.opt.signcolumn = "yes"
 -- 光标样式
 vim.opt.guicursor = "a:blinkon100"

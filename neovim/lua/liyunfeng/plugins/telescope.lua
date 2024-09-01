@@ -18,18 +18,19 @@ return {
         -- 前面是要触发的按键，后面是一个可选的触发操作
         -- { "this lhs 相当于按键绑定的按键", "{this rhs 相当于按键绑定的触发操作}", desc = "Comment plugin" },
         -- 不过这里的触发操作要是 vim 的命令了，也就是 cmdline 的形式
-        {"<leader>tf", ":Telescope find_files<cr>", desc = "telescope 的内置函数“查找文件”函数按键绑定"},
-        {"<leader>tl", ":Telescope live_grep<cr>", desc = "telescope 的内置函数“实时文本匹配”函数按键绑定"},
-        -- {"<leader>tbb", ":Telescope buffers<cr>", desc = "telescope 的内置函数“显示当前所有Buffer”函数按键绑定"}, -- 弃用，已使用 bufferline 插件
-        {"<leader>tbf", ":Telescope current_buffer_fuzzy_find<cr>", desc = "telescope 的内置函数“根据当前buffer模糊查询”函数按键绑定"},
-        {"<leader>tr", ":Telescope resume<cr>", desc = "telescope 的内置函数“继续上次搜索”函数按键绑定"},
-        {"<leader>to", ":Telescope oldfiles<cr>", desc = "telescope 的内置函数“历史打开文件”函数按键绑定"},
-        {"<leader>tk", ":Telescope keymaps<cr>", desc = "telescope 的内置函数“按键绑定查询”函数按键绑定"},
-        {"<leader>tg", ":Telescope grep_string<cr>", desc = "telescope 的内置函数“根据当前单词查询”函数按键绑定"},
-        {"<leader>ta", ":Telescope builtin<cr>", desc = "telescope 的内置函数“列出Telescope的所有内置命令”函数按键绑定"},
-        {"<leader>tc", ":Telescope commands<cr>", desc = "telescope 的内置函数“列出所有插件/用户的命令”函数按键绑定"},
-        {"<leader>tvc", ":Telescope command_history<cr>", desc = "telescope 的内置函数“列出历史命令”函数按键绑定"},
-        {"<leader>tvo", ":Telescope vim_options<cr>", desc = "telescope 的内置函数“列出当前的options”函数按键绑定"},
+        -- telescope 的内置函数
+        {"<leader>tf", ":Telescope find_files<cr>", desc = "“查找文件”函数按键绑定"},
+        {"<leader>tl", ":Telescope live_grep<cr>", desc = "“实时文本匹配”函数按键绑定"},
+        -- {"<leader>tbb", ":Telescope buffers<cr>", desc = "“显示当前所有Buffer”函数按键绑定"}, -- 弃用，已使用 bufferline 插件
+        {"<leader>tbf", ":Telescope current_buffer_fuzzy_find<cr>", desc = "“根据当前buffer模糊查询”函数按键绑定"},
+        {"<leader>tr", ":Telescope resume<cr>", desc = "“继续上次搜索”函数按键绑定"},
+        {"<leader>to", ":Telescope oldfiles<cr>", desc = "“历史打开文件”函数按键绑定"},
+        {"<leader>tk", ":Telescope keymaps<cr>", desc = "“按键绑定查询”函数按键绑定"},
+        {"<leader>tg", ":Telescope grep_string<cr>", desc = "“根据当前单词查询”函数按键绑定"},
+        {"<leader>ta", ":Telescope builtin<cr>", desc = "“列出Telescope的所有内置命令”函数按键绑定"},
+        {"<leader>tc", ":Telescope commands<cr>", desc = "“列出所有插件/用户的命令”函数按键绑定"},
+        {"<leader>tvc", ":Telescope command_history<cr>", desc = "“列出历史命令”函数按键绑定"},
+        {"<leader>tvo", ":Telescope vim_options<cr>", desc = "“列出当前的options”函数按键绑定"},
     },
     -- 设置打开 telescope 之后的按键映射
     -- mappings = {

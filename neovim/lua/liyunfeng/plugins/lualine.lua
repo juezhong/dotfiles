@@ -1,7 +1,11 @@
 return {
     'nvim-lualine/lualine.nvim',
-    dependencies = { 'nvim-tree/nvim-web-devicons' },
-    -- lazy = true,
+    -- dependencies = { 'nvim-tree/nvim-web-devicons' },
+    dependencies = {
+        'nvim-tree/nvim-web-devicons',
+        "navarasu/onedark.nvim",
+    },
+    lazy = true,
     -- ft = "*",
     -- event = "BufReadPost",
     event = {
@@ -11,7 +15,8 @@ return {
     config = function()
         require("lualine").setup({
             options = {
-                theme = 'dracula',
+                -- theme = 'dracula',
+                theme = 'onedark',
             }
         })
     end

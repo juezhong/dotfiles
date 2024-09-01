@@ -1,15 +1,25 @@
--- 使用 require 加载文件模块的方式不用写完整的相对路径
--- 因为默认使用 lua 作为 root 目录
--- 完整路径 lua/liyunfeng/core/options
-require("liyunfeng/core/options")
-require("liyunfeng/core/keymaps")
-require("liyunfeng.core.autocommands")
-require("liyunfeng.core.usercommands")
+-- TODO: adapt VSCode neovim plugin, see https://marketplace.visualstudio.com/items?itemName=asvetliakov.vscode-neovim&ssr=false#overview
+if vim.g.vscode then
+    -- VSCode extension
+    require("liyunfeng.vscode.options")
+    require("liyunfeng.vscode.keymaps")
+    require("liyunfeng.vscode.lazynvim")
+    require("liyunfeng.UserColors.ChineseColors")
+else
+    -- ordinary Neovim
+    -- 使用 require 加载文件模块的方式不用写完整的相对路径
+    -- 因为默认使用 lua 作为 root 目录
+    -- 完整路径 lua/liyunfeng/core/options
+    require("liyunfeng/core/options")
+    require("liyunfeng/core/keymaps")
+    require("liyunfeng.core.autocommands")
+    require("liyunfeng.core.usercommands")
 
--- vim.cmd("highlight ChineseColorMaiMiaoGreen ctermfg=115 guifg=#55bb8a cterm=NONE gui=NONE")
--- 使用 colors/**.vim 的方式，只能使用以下的方式手动加载
--- vim.cmd("colorscheme ChineseColorMaiMiaoGreen")
-require("liyunfeng.UserColors.ChineseColors")
+    -- vim.cmd("highlight ChineseColorMaiMiaoGreen ctermfg=115 guifg=#55bb8a cterm=NONE gui=NONE")
+    -- 使用 colors/**.vim 的方式，只能使用以下的方式手动加载
+    -- vim.cmd("colorscheme ChineseColorMaiMiaoGreen")
+    require("liyunfeng.UserColors.ChineseColors")
 
--- 加载插件管理器 lazy.nvim
-require("liyunfeng.core.lazy-nvim")
+    -- 加载插件管理器 lazy.nvim
+    require("liyunfeng.core.lazy-nvim")
+end

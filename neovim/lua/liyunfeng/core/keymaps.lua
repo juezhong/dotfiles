@@ -52,3 +52,8 @@ vim.keymap.set("n", "<leader>bo", ":badd ") -- 打开一个新的Buffer
 vim.keymap.set("i", "jk", "<esc>")
 vim.keymap.set("i", "jj", "<esc>")
 vim.keymap.set("i", "kk", "<esc>")
+
+--[[ Visual mode ]]
+-- 为了粘贴之后而不覆盖剪切板的内容
+-- vim.keymap.set("v", "p", '"_dP')
+vim.keymap.set("v", "p", "P")
