@@ -1,0 +1,7 @@
+[user]
+	email = 1193230388@qq.com
+	name = liyunfeng
+[http]
+	proxy = http://127.0.0.1:10810
+[https]
+	proxy = https://127.0.0.1:10810
