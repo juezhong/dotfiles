@@ -1,2 +1,3 @@
 ~/.gitconfig,home_cfgs/gitconfig
 ~/.config,xdg_config_cfgs
+~/.zshrc,home_cfgs/zsh/config_main.zsh
