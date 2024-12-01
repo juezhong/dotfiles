@@ -117,6 +117,27 @@ zinit ice wait lucid depth"1" from"gh-r" as"command" atclone"./zoxide init zsh >
     src"init.zsh"
 zinit load ajeetdsouza/zoxide
 unset ALL_PROXY
+
+
+#fzf --zsh > init.zsh 
+#/opt/homebrew/bin/fzf
+if [[ "$os_type" == "Darwin" ]]; then
+  # echo "This is macOS."
+  fzf_path="/opt/homebrew/bin/fzf"
+else
+  if command -v fzf > /dev/null 2>&1; then
+    fzf_path=$(command -v fzf)
+  else
+    echo "Command fzf does not exist"
+    zinit ice wait lucid depth"1" from"gh-r" sbin"fzf"
+    zinit load junegunn/fzf
+  fi
+fi
+
+eval $(${fzf_path} --zsh)
+zinit ice wait lucid depth"1"
+zinit load Aloxaf/fzf-tab
+
 ######
 ####### 替换默认的补全菜单选择，使用了 fzf 需提前安装
 ######zinit ice wait lucid depth 1
