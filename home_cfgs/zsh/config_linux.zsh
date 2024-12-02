@@ -82,10 +82,14 @@ if is_ubuntu; then
   export PATH=$PATH:~/.local/share/nvim/mason/bin/
   export PATH=$PATH:~/.local/bin
   # add eza
-  export ALL_PROXY=socks5://192.168.123.1:10808
+  export $proxy_env
   zinit ice wait lucid depth"1" from"gh-r" as"command"
   zinit load eza-community/eza
   unset ALL_PROXY
+
+  # lazygit
+  zinit ice wait lucid depth"1" from"gh-r" sbin"lazygit"
+  zinit load jesseduffield/lazygit
 
   export PATH=$PATH:~/.local/share/nvim/mason/bin/
   export LANG=zh_CN.UTF8

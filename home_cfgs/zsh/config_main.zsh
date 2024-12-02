@@ -3,6 +3,7 @@
 # 定义全局变量，用于加载配置文件，通过解析软链接
 real_path=$(dirname $(realpath ~/.zshrc))
 os_type=$(uname)
+proxy_env="ALL_PROXY=socks5://127.0.0.1:10808"
 
 ### 加载通用的配置
 source "$real_path/config_common.zsh"
