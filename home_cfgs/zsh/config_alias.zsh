@@ -6,11 +6,11 @@ alias ls='eza --icons=always --color=auto -h -g -O --git --git-repos --time-styl
 alias ll='ls -lh'
 alias la='ls -alh'
 # 使用 zoxide 替换 cd 命令，而 z 是 zoxide 的另一个函数映射
-alias cd='z'
+alias c='z'
 alias grep='grep --color=auto'
 alias rg='rg -S'
 alias tree='tree -C'
-alias pp='export ALL_PROXY=socks5://127.0.0.1:10808'
+alias pp='export ALL_PROXY=socks5://192.168.123.1:10808'
 alias up='unset ALL_PROXY'
 alias cb='cmake -B build'
 alias cc='cmake --build build'

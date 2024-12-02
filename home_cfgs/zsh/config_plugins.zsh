@@ -87,7 +87,7 @@ zinit wait lucid depth"1" for \
 # 命令补全
 
 # prompt 主题
-export ALL_PROXY=socks5://127.0.0.1:10808
+export ALL_PROXY=socks5://192.168.123.1:10808
 zinit ice lucid depth"1" from"github-rel" fbin"starship" \
     atclone"./starship init zsh > init.zsh" \
     atclone"./starship preset nerd-font-symbols -o ~/.config/starship.toml" \
@@ -112,7 +112,7 @@ unset ALL_PROXY
 # 但是不能使用 fbin"zoxide" 选项，fbin 会把 zoxide 作为一个函数
 # 因为会从环境变量中读取 zoxide 命令，而不是使用函数
 # 所以要分两步，一次安装 zoxide 命令，一次加载 zoxide.plugin.zsh 文件
-export ALL_PROXY=socks5://127.0.0.1:10808
+export ALL_PROXY=socks5://192.168.123.1:10808
 zinit ice wait lucid depth"1" from"gh-r" as"command" atclone"./zoxide init zsh > init.zsh" \
     src"init.zsh"
 zinit load ajeetdsouza/zoxide
@@ -124,17 +124,27 @@ unset ALL_PROXY
 if [[ "$os_type" == "Darwin" ]]; then
   # echo "This is macOS."
   fzf_path="/opt/homebrew/bin/fzf"
+  # C-r, C-t 这些快捷键需要通过 install 脚本生成，然后 source 使用
+  # TODO 这部分需要更新使用方式
 else
   if command -v fzf > /dev/null 2>&1; then
     fzf_path=$(command -v fzf)
   else
     echo "Command fzf does not exist"
-    zinit ice wait lucid depth"1" from"gh-r" sbin"fzf"
-    zinit load junegunn/fzf
+    # zinit ice wait lucid depth"1" from"gh-r" sbin"fzf"
+    # zinit load junegunn/fzf
   fi
 fi
 
-eval $(${fzf_path} --zsh)
+if is_ubuntu; then
+  export ALL_PROXY=socks5://192.168.123.1:10808
+  zinit ice wait lucid depth"1" atclone"./install --no-bash --no-fish --xdg --no-update-rc"
+  zinit load junegunn/fzf
+  unset ALL_PROXY
+  [ -f "${XDG_CONFIG_HOME:-$HOME/.config}"/fzf/fzf.zsh ] && source "${XDG_CONFIG_HOME:-$HOME/.config}"/fzf/fzf.zsh
+else
+  eval $(${fzf_path} --zsh)
+fi
 zinit ice wait lucid depth"1"
 zinit load Aloxaf/fzf-tab
 

@@ -25,4 +25,11 @@ function tree_cp
         rm -rf level_utf8.txt level_gbk.txt
     fi
 }
+
+function is_ubuntu
+{
+    # uname -a | grep -i "ubuntu" | wc -l
+    uname -a | grep -iq "ubuntu"
+}
 ### End of functions
+

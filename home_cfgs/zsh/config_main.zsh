@@ -6,10 +6,10 @@ os_type=$(uname)
 
 ### 加载通用的配置
 source "$real_path/config_common.zsh"
-### 加载插件配置
-source "$real_path/config_plugins.zsh"
 ### 加载函数配置
 source "$real_path/config_functions.zsh"
+### 加载插件配置
+source "$real_path/config_plugins.zsh"
 ### 加载别名配置
 source "$real_path/config_alias.zsh"
 
@@ -26,3 +26,4 @@ elif [[ "$os_type" == CYGWIN* || "$os_type" == MINGW* ]]; then
 else
   echo "Unknown operating system."
 fi
+
