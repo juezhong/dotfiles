@@ -5,3 +5,8 @@ emacs/transient
 emacs/*~
 emacs/tramp
 todo
+xdg_config_cfgs/raycast/config.json
+home_cfgs/zsh/.zcompdump
+home_cfgs/zsh/.zsh_history
+xdg_config_cfgs/zsh
+home_cfgs/zsh/.histfile

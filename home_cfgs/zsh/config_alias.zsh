@@ -20,6 +20,7 @@ alias cman='man -L zh_CN'
 alias vim='nvim'
 alias vi='vim'
 alias v='vi'
+alias lg='lazygit'
 
 
 
@@ -30,7 +31,8 @@ alias v='vi'
 ### 同样由于三个系统上可能命令不同，alias 的命令也不同
 if [[ "$os_type" == "Darwin" ]]; then
   # echo "This is macOS."
-  
+  alias xc='pbcopy'
+  alias xp='pbpaste'
 elif [[ "$os_type" == "Linux" ]]; then
   # echo "This is Linux."
   # alias xclip='xclip -selection clipboard -rmlastnl'
@@ -40,7 +42,7 @@ elif [[ "$os_type" == "Linux" ]]; then
   # Ctrl + Insert 使用的 剪切板
   # clipboard: 剪切板，不会被清除
   alias xc='xclip -selection clipboard -rmlastnl && xclip -o -selection clipboard | xclip -selection primary -rmlastnl'
-  alias xp='xclip -o -selection clipboard'  
+  alias xp='xclip -o -selection clipboard'
   ### ues pacmd switch audio output
   alias pacmdswitcher='pacmd set-default-sink $(pacmd list-sinks | rg "name: <(.*)>" -0 | cut -d "<" -f 2 | cut -d ">" -f 1 | fzf)'
   ### use thunar(file manager) to open directory

@@ -146,7 +146,7 @@ fi
 
   #eval "$(fzf --zsh)"
 
-zinit ice wait lucid depth"1"
+zinit ice wait lucid depth"1" src"fzf-tab.plugin.zsh"
 zinit load Aloxaf/fzf-tab
 
 ######

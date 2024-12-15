@@ -511,6 +511,7 @@ clean_links() {
 # 检查输入参数
 if [ "$#" -eq 0 ]; then
     show_help
+    trap - EXIT  # 移除退出钩子，这样不会执行清理操作
     exit 1
 fi
 
@@ -523,6 +524,7 @@ case "$1" in
         if [ "$#" -ne 3 ]; then
             print_error "错误: 'add' 命令参数无效"
             show_help
+            trap - EXIT  # 移除退出钩子，这样不会执行清理操作
             exit 1
         fi
         add_link "$2" "$3"
