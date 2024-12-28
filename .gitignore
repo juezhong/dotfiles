@@ -10,3 +10,9 @@ home_cfgs/zsh/.zcompdump
 home_cfgs/zsh/.zsh_history
 xdg_config_cfgs/zsh
 home_cfgs/zsh/.histfile
+home_cfgs/zsh/.zcompcache
+home_cfgs/zsh/.zsh_sessions
+xdg_config_cfgs/siyuan/app.log
+xdg_config_cfgs/siyuan/port.json
+xdg_config_cfgs/siyuan/windowState.json
+xdg_config_cfgs/siyuan/announcement.json
