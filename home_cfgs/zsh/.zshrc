@@ -1,10 +1,10 @@
 ### 不同的系统类型使用不同的配置
 # echo $(pwd)
 # 定义全局变量，用于加载配置文件，通过解析软链接
-if [[ -e ~/.zshrc ]] then
+if [[ -e ~/.zshrc ]]; then
   real_path=$(dirname $(realpath ~/.zshrc))
 else
-  real_path=".config/zsh"
+  real_path=$(realpath ~/.config/zsh)
 fi
 os_type=$(uname)
 proxy_env="ALL_PROXY=socks5://127.0.0.1:10808"
@@ -31,3 +31,4 @@ elif [[ "$os_type" == CYGWIN* || "$os_type" == MINGW* ]]; then
 else
   echo "Unknown operating system."
 fi
+

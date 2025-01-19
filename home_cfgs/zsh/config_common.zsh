@@ -9,7 +9,10 @@ setopt appendhistory
 setopt sharehistory
 # 在前面加一个空格就会被忽略而不记录到历史命令
 setopt hist_ignore_space
-### End of lines configured by zsh-newuser-install
+
+# Edit line in vime with Ctrl-e
+autoload edit-command-line; zle -N edit-command-line
+bindkey '^x^e' edit-command-line
 
 # Set case a/A
 # 忽略补全大小写
@@ -35,3 +38,5 @@ zstyle ':fzf-tab:complete:(-command-|-parameter-|-brace-parameter-|export|unset|
 	fzf-preview 'echo ${(P)word}'
 # Homebrew
 zstyle ':fzf-tab:complete:brew-(install|uninstall|search|info):*-argument-rest' fzf-preview 'brew info $word'
+
+export PATH=$PATH:~/scripts

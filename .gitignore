@@ -16,3 +16,5 @@ xdg_config_cfgs/siyuan/app.log
 xdg_config_cfgs/siyuan/port.json
 xdg_config_cfgs/siyuan/windowState.json
 xdg_config_cfgs/siyuan/announcement.json
+.DS_Store
+home_cfgs/zsh/self_env.zsh

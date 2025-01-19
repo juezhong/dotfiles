@@ -8,4 +8,22 @@ export HOMEBREW_NO_INSTALL_CLEANUP=1
 ## Disable brew auto formul or cask when 'brew install'
 export HOMEBREW_NO_INSTALL_UPGRADE=1
 
-### zinit 的语法好像有更新所有更新一版 Mac 中的配置
+if [[ -e self_env.zsh ]]; then
+	source self_env.zsh
+fi
+
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="$('/opt/homebrew/Caskroom/miniconda/base/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "/opt/homebrew/Caskroom/miniconda/base/etc/profile.d/conda.sh" ]; then
+        . "/opt/homebrew/Caskroom/miniconda/base/etc/profile.d/conda.sh"
+    else
+        export PATH="/opt/homebrew/Caskroom/miniconda/base/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+# <<< conda initialize <<<
+

@@ -20,7 +20,7 @@ alias cman='man -L zh_CN'
 alias vim='nvim'
 alias vi='vim'
 alias v='vi'
-alias lg='lazygit'
+alias lg='LANG=zh-CN lazygit'
 
 
 
@@ -33,6 +33,9 @@ if [[ "$os_type" == "Darwin" ]]; then
   # echo "This is macOS."
   alias xc='pbcopy'
   alias xp='pbpaste'
+  if [[ -e /Users/liyunfeng/workspace/Chinese-Color/colors.txt ]]; then
+	  alias pick_colors='cat /Users/liyunfeng/workspace/Chinese-Color/colors.txt | fzf --ansi | cut -d ' ' -f 4 | xc'
+  fi
 elif [[ "$os_type" == "Linux" ]]; then
   # echo "This is Linux."
   # alias xclip='xclip -selection clipboard -rmlastnl'
