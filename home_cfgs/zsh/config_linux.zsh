@@ -97,5 +97,6 @@ if is_ubuntu; then
   export EDITOR=nvim
 else
   # echo "Def ArchLinux"
+  export EDITOR=nvim
 fi
 

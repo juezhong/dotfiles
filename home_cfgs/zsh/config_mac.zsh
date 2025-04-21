@@ -8,6 +8,12 @@ export HOMEBREW_NO_INSTALL_CLEANUP=1
 ## Disable brew auto formul or cask when 'brew install'
 export HOMEBREW_NO_INSTALL_UPGRADE=1
 
+# init fzf
+if command -v fzf > /dev/null 2>&1; then
+    fzf_path=$(command -v fzf)
+    eval "$($fzf_path --zsh)"
+fi
+
 if [[ -e self_env.zsh ]]; then
 	source self_env.zsh
 fi
