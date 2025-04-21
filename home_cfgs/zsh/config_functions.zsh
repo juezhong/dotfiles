@@ -1,7 +1,11 @@
 ### Functions
 function cdd
 {
-    destination_dir=$(dirname $1 -z)
+    destination_dir=$(dirname $1)
+    local os_type=$(uname -s)
+    if [[ "$os_type" == "Linux" ]] then
+        destination_dir=$(dirname $1 -z)
+    fi
     chdir $destination_dir
 }
 
