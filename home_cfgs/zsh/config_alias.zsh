@@ -7,6 +7,7 @@ alias ll='ls -lh'
 alias la='ls -alh'
 # 使用 zoxide 替换 cd 命令，而 z 是 zoxide 的另一个函数映射
 alias c='z'
+alias cd='c'
 alias grep='grep --color=auto'
 alias rg='rg -S'
 alias tree='tree -C'

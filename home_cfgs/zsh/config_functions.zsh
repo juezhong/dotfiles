@@ -42,5 +42,13 @@ function is_windows
     (uname -s | grep -iq "CYGWIN") || (uname -s | grep -iq "MINGW")
     # (uname -a | grep -iq "MINGW64_NT") || (uname -a | grep -iq "MSYS_NT")
 }
+
+# logger, record log messages with line number to ~/log_zsh.txt
+# Usage: logger "message"
+function logger
+{
+    # echo $@ >> ~/log_zsh.txt
+    echo $(date "+%Y-%m-%d %H:%M:%S") $@ >> ~/log_zsh.txt
+}
 ### End of functions
 
