@@ -13,21 +13,25 @@ proxy_env="ALL_PROXY=socks5://127.0.0.1:10808"
 source "$real_path/config_common.zsh"
 ### 加载函数配置
 source "$real_path/config_functions.zsh"
-### 加载插件配置
-source "$real_path/config_plugins.zsh"
 ### 加载别名配置
 source "$real_path/config_alias.zsh"
 
 ### 系统特定配置
 if [[ "$os_type" == "Darwin" ]]; then
   # echo "This is macOS."
-  source "$real_path/config_mac.zsh"
+  ### 加载插件配置
+  source "$real_path/plugins/mac_plugins.zsh"
+  source "$real_path/os_configs/mac_config.zsh"
 elif [[ "$os_type" == "Linux" ]]; then
   # echo "This is Linux."
-  source "$real_path/config_linux.zsh"
+  ### 加载插件配置
+  source "$real_path/plugins/linux_plugins.zsh"
+  source "$real_path/os_configs/linux_config.zsh"
 elif [[ "$os_type" == CYGWIN* || "$os_type" == MINGW* ]]; then
   # echo "This is Windows (Cygwin/Mingw)."
-  source "$real_path/config_windows.zsh"
+  ### 加载插件配置
+  source "$real_path/plugins/windows_plugins.zsh"
+  source "$real_path/os_configs/windows_config.zsh"
 else
   echo "Unknown operating system."
 fi

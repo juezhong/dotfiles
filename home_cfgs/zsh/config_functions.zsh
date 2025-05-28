@@ -35,5 +35,12 @@ function is_ubuntu
     # uname -a | grep -i "ubuntu" | wc -l
     uname -a | grep -iq "ubuntu"
 }
+
+function is_windows
+{
+    # elif [[ "$os_type" == CYGWIN* || "$os_type" == MINGW* ]]; then
+    (uname -s | grep -iq "CYGWIN") || (uname -s | grep -iq "MINGW")
+    # (uname -a | grep -iq "MINGW64_NT") || (uname -a | grep -iq "MSYS_NT")
+}
 ### End of functions
 
