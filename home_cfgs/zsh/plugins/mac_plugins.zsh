@@ -87,39 +87,11 @@ zinit wait lucid depth"1" for \
 # 命令补全
 
 # prompt 主题
-# 首先检测有没有 starship 命令
-if command -v starship > /dev/null 2>&1; then
-  starship_path=$(command -v starship)
-  # 检查有没有 ~/.config/starship.toml 文件，只判断不存在的情况，默认存在
-  if [ ! -f ~/.config/starship.toml ]; then
-    #echo "File ~/.config/starship.toml does not exist."
-    # 没有，则创建一个
-    $starship_path preset nerd-font-symbols -o ~/.config/starship.toml
-    # 加载 starship
-  fi
-  $starship_path completions zsh > _starship
-  eval "$($starship_path init zsh)"
-else
-  #echo "Command starship does not exist"
-  # Not exist, download and install via zinit
-  export $proxy_env
-  zinit ice lucid depth"1" from"github-rel" fbin"starship" \
-      atclone"./starship init zsh > init.zsh" \
-      atclone"./starship preset nerd-font-symbols -o ~/.config/starship.toml" \
-      atclone"./starship completions zsh > _starship" \
-      src"init.zsh"
-  # starship 不是标准的 zsh 插件，所以需要手动指定从哪里克隆，这是 from"gh-r" 选项的作用说明
-  # https://zdharma-continuum.github.io/zinit/wiki/z-a-bin-gem-node/#how_it_works_in_detail
-  # as"command" 选项表示将插件安装为命令，会自动将插件的安装路径添加到 PATH 环境变量中
-  # /Users/liyunfeng/.local/share/zinit/plugins/starship---starship
-  # 但是这样会导致 path 环境变量太长，所以使用 fbin"" 选项
-  # 使用 atclone 选项在克隆完成后在插件目录中执行一条命令
-  # Normally src'' can be used to specify additional file to source
-  # src 选项的说明
-  # https://zdharma-continuum.github.io/zinit/wiki/Sourcing-multiple-files/
-  zinit light starship/starship
-  unset ALL_PROXY
-fi
+# 首先检测有没有 starship 命令，这里也是要替换到 mac_config.zsh 中，因为通过 brew install
+
+# 由于 starship 是通过 homebrew 安装的，但是 homebrew 的路径是在 mac_config.zsh 中设置并生效的
+# 所以这时候检测不到有 starship 命令
+# 这部分在 mac_config.zsh 中初始化
 
 # https://github.com/ajeetdsouza/zoxide
 # 目录导航工具，适用于过去访问过的每个目录
@@ -146,35 +118,12 @@ fi
 
 #fzf --zsh > init.zsh 
 #/opt/homebrew/bin/fzf
-if [[ "$os_type" == "Darwin" ]]; then
-  # echo "This is macOS."
-  # C-r, C-t 这些快捷键需要通过 install 脚本生成，然后 source 使用
-  # 这部分需要更新使用方式
-  # 由于 fzf 是通过 homebrew 安装的，但是 homebrew 的路径是在 config_mac.zsh 中设置并生效的
-  # 所以这时候检测不到有 fzf 命令
-  # 这部分在 config_mac.zsh 中初始化
-else
-  # Linux
-  if command -v fzf > /dev/null 2>&1; then
-    fzf_path=$(command -v fzf)
-    eval "$($fzf_path --zsh)"
-  else
-    echo "Command fzf does not exist"
-    # zinit ice wait lucid depth"1" from"gh-r" sbin"fzf"
-    # zinit load junegunn/fzf
-    export $proxy_env
-    zinit ice wait lucid depth"1" atclone"./install --no-bash --no-fish --xdg --no-update-rc"
-    zinit load junegunn/fzf
-    unset ALL_PROXY
-
-    [ -f "${XDG_CONFIG_HOME:-$HOME/.config}"/fzf/fzf.zsh ] && source "${XDG_CONFIG_HOME:-$HOME/.config}"/fzf/fzf.zsh
-
-    #eval "$(fzf --zsh)"
-  fi
-fi
-
-
-
+# echo "This is macOS."
+# C-r, C-t 这些快捷键需要通过 install 脚本生成，然后 source 使用
+# 这部分需要更新使用方式
+# 由于 fzf 是通过 homebrew 安装的，但是 homebrew 的路径是在 mac_config.zsh 中设置并生效的
+# 所以这时候检测不到有 fzf 命令
+# 这部分在 mac_config.zsh 中初始化
 
 zinit ice wait lucid depth"1" src"fzf-tab.plugin.zsh"
 zinit load Aloxaf/fzf-tab

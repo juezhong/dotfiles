@@ -97,7 +97,7 @@ if command -v starship > /dev/null 2>&1; then
     $starship_path preset nerd-font-symbols -o ~/.config/starship.toml
     # 加载 starship
   fi
-  $starship_path completions zsh > _starship
+  # $starship_path completions zsh > _starship
   eval "$($starship_path init zsh)"
 else
   #echo "Command starship does not exist"
@@ -146,35 +146,23 @@ fi
 
 #fzf --zsh > init.zsh 
 #/opt/homebrew/bin/fzf
-if [[ "$os_type" == "Darwin" ]]; then
-  # echo "This is macOS."
-  # C-r, C-t 这些快捷键需要通过 install 脚本生成，然后 source 使用
-  # 这部分需要更新使用方式
-  # 由于 fzf 是通过 homebrew 安装的，但是 homebrew 的路径是在 config_mac.zsh 中设置并生效的
-  # 所以这时候检测不到有 fzf 命令
-  # 这部分在 config_mac.zsh 中初始化
+# Linux
+if command -v fzf > /dev/null 2>&1; then
+  fzf_path=$(command -v fzf)
+  eval "$($fzf_path --zsh)"
 else
-  # Linux
-  if command -v fzf > /dev/null 2>&1; then
-    fzf_path=$(command -v fzf)
-    eval "$($fzf_path --zsh)"
-  else
-    echo "Command fzf does not exist"
-    # zinit ice wait lucid depth"1" from"gh-r" sbin"fzf"
-    # zinit load junegunn/fzf
-    export $proxy_env
-    zinit ice wait lucid depth"1" atclone"./install --no-bash --no-fish --xdg --no-update-rc"
-    zinit load junegunn/fzf
-    unset ALL_PROXY
+  echo "Command fzf does not exist"
+  # zinit ice wait lucid depth"1" from"gh-r" sbin"fzf"
+  # zinit load junegunn/fzf
+  export $proxy_env
+  zinit ice wait lucid depth"1" atclone"./install --no-bash --no-fish --xdg --no-update-rc"
+  zinit load junegunn/fzf
+  unset ALL_PROXY
 
-    [ -f "${XDG_CONFIG_HOME:-$HOME/.config}"/fzf/fzf.zsh ] && source "${XDG_CONFIG_HOME:-$HOME/.config}"/fzf/fzf.zsh
+  [ -f "${XDG_CONFIG_HOME:-$HOME/.config}"/fzf/fzf.zsh ] && source "${XDG_CONFIG_HOME:-$HOME/.config}"/fzf/fzf.zsh
 
-    #eval "$(fzf --zsh)"
-  fi
+  #eval "$(fzf --zsh)"
 fi
-
-
-
 
 zinit ice wait lucid depth"1" src"fzf-tab.plugin.zsh"
 zinit load Aloxaf/fzf-tab
