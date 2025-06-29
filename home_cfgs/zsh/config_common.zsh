@@ -40,3 +40,4 @@ zstyle ':fzf-tab:complete:(-command-|-parameter-|-brace-parameter-|export|unset|
 zstyle ':fzf-tab:complete:brew-(install|uninstall|search|info):*-argument-rest' fzf-preview 'brew info $word'
 
 export PATH=$PATH:~/scripts
+export GPG_TTY=$(tty)
