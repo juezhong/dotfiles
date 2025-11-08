@@ -134,9 +134,16 @@ show_skipped_operations() {
 show_help() {
     print_header "使用说明"
     echo -e "${BOLD}用法:${NC}"
-    echo -e "  ${CYAN}links.sh all${NC}              # 根据 default_links 文件创建软链接"
-    echo -e "  ${CYAN}links.sh add LINK TARGET${NC}  # 添加一个从 LINK 到 TARGET 的软链接"
-    echo -e "  ${CYAN}links.sh clean${NC}            # 清理所有软链接并清空配置文件"
+    echo -e "  ${CYAN}links.sh status${NC}            # 显示所有软链接的状态信息"
+    echo -e "  ${CYAN}links.sh all${NC}               # 根据 default_links 文件创建软链接"
+    echo -e "  ${CYAN}links.sh add LINK TARGET${NC}   # 添加一个从 LINK 到 TARGET 的软链接"
+    echo -e "  ${CYAN}links.sh clean${NC}             # 交互式删除软链接"
+    echo
+    echo -e "${BOLD}说明:${NC}"
+    echo -e "  ${GREEN}status${NC}  - 检查并显示软链接状态（已创建/未创建/冲突）"
+    echo -e "  ${GREEN}all${NC}     - 批量创建软链接，已存在的会自动跳过或询问覆盖"
+    echo -e "  ${GREEN}add${NC}     - 添加单个软链接到配置文件并创建"
+    echo -e "  ${GREEN}clean${NC}   - 选择性删除已创建的软链接"
     echo
 }
 
@@ -529,6 +536,131 @@ parse_selection() {
     return 0
 }
 
+# 显示软链接状态
+show_status() {
+    print_header "软链接状态检查"
+
+    if [ ! -f "$DEFAULT_LINKS_FILE" ]; then
+        print_error "在当前目录未找到 default_links 文件"
+        return 1
+    fi
+
+    if [ ! -s "$DEFAULT_LINKS_FILE" ]; then
+        print_warning "default_links 文件为空"
+        return 0
+    fi
+
+    # 统计计数器
+    local count_ok=0
+    local count_missing=0
+    local count_conflict=0
+    local count_occupied=0
+    local total=0
+
+    # 存储每种状态的链接信息
+    local -a ok_links
+    local -a missing_links
+    local -a conflict_links
+    local -a occupied_links
+
+    while IFS=',' read -r link target; do
+        # 跳过空行或格式不正确的行
+        if [ -z "$link" ] || [ -z "$target" ]; then
+            continue
+        fi
+
+        total=$((total + 1))
+
+        # 展开路径
+        local expanded_link=$(expand_path "$link")
+        local expanded_target=$(expand_path "$target")
+
+        # 检查链接状态
+        if [ -L "$expanded_link" ]; then
+            # 是软链接，检查目标是否正确
+            local current_target=$(readlink "$expanded_link")
+            if [ "$current_target" = "$expanded_target" ]; then
+                # ✓ 已创建且正确
+                ok_links+=("✓|$expanded_link|$expanded_target|OK")
+                count_ok=$((count_ok + 1))
+            else
+                # ⚠ 冲突：指向不同目标
+                conflict_links+=("⚠|$expanded_link|$expanded_target|$current_target")
+                count_conflict=$((count_conflict + 1))
+            fi
+        elif [ -e "$expanded_link" ]; then
+            # ⚠ 路径存在但不是软链接
+            occupied_links+=("⚠|$expanded_link|$expanded_target|占用")
+            count_occupied=$((count_occupied + 1))
+        else
+            # ✗ 不存在
+            missing_links+=("✗|$expanded_link|$expanded_target|未创建")
+            count_missing=$((count_missing + 1))
+        fi
+    done < "$DEFAULT_LINKS_FILE"
+
+    # 显示已创建且正确的链接
+    if [ ${#ok_links[@]} -gt 0 ]; then
+        echo
+        print_success "已正确创建 ($count_ok)"
+        for item in "${ok_links[@]}"; do
+            IFS='|' read -r icon link target status <<< "$item"
+            echo -e "  ${GREEN}$icon${NC} ${link} ${YELLOW}→${NC} ${target}"
+        done
+    fi
+
+    # 显示未创建的链接
+    if [ ${#missing_links[@]} -gt 0 ]; then
+        echo
+        print_error "未创建 ($count_missing)"
+        for item in "${missing_links[@]}"; do
+            IFS='|' read -r icon link target status <<< "$item"
+            echo -e "  ${RED}$icon${NC} ${link} ${YELLOW}→${NC} ${target}"
+        done
+    fi
+
+    # 显示冲突的链接
+    if [ ${#conflict_links[@]} -gt 0 ]; then
+        echo
+        print_warning "目标冲突 ($count_conflict)"
+        for item in "${conflict_links[@]}"; do
+            IFS='|' read -r icon link target current <<< "$item"
+            echo -e "  ${YELLOW}$icon${NC} ${link}"
+            echo -e "     ${CYAN}期望${NC}: ${target}"
+            echo -e "     ${RED}实际${NC}: ${current}"
+        done
+    fi
+
+    # 显示被占用的路径
+    if [ ${#occupied_links[@]} -gt 0 ]; then
+        echo
+        print_warning "路径被占用（不是软链接） ($count_occupied)"
+        for item in "${occupied_links[@]}"; do
+            IFS='|' read -r icon link target status <<< "$item"
+            echo -e "  ${YELLOW}$icon${NC} ${link}"
+            echo -e "     ${CYAN}期望${NC}: 软链接 → ${target}"
+            echo -e "     ${RED}实际${NC}: 文件或目录"
+        done
+    fi
+
+    # 显示统计摘要
+    echo
+    print_header "状态摘要"
+    echo -e "  ${BOLD}总计${NC}: $total"
+    echo -e "  ${GREEN}✓ 已正确创建${NC}: $count_ok"
+    echo -e "  ${RED}✗ 未创建${NC}: $count_missing"
+    echo -e "  ${YELLOW}⚠ 目标冲突${NC}: $count_conflict"
+    echo -e "  ${YELLOW}⚠ 路径被占用${NC}: $count_occupied"
+
+    # 给出建议
+    echo
+    if [ $count_missing -gt 0 ] || [ $count_conflict -gt 0 ] || [ $count_occupied -gt 0 ]; then
+        print_info "建议: 运行 '${CYAN}./links.sh all${NC}' 来创建或修复软链接"
+    else
+        print_success "所有软链接都已正确创建！"
+    fi
+}
+
 # 清理软链接和文件
 clean_links() {
     log_message "开始清理软链接"
@@ -681,6 +813,10 @@ fi
 
 # 根据参数选择功能
 case "$1" in
+    status)
+        trap - EXIT  # status 命令不需要 cleanup 钩子
+        show_status
+        ;;
     all)
         create_links_from_default
         ;;

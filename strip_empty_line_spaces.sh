@@ -321,9 +321,6 @@ main() {
         exit 1
     fi
 
-    # 记录开始时间
-    local start_time=$(date +%s)
-
     print_header "空行空格清理工具 🧹"
     print_info "预览模式，将先展示需要处理的内容"
 
@@ -357,10 +354,6 @@ main() {
         exit 1
     fi
 
-    # 第一阶段完成后的统计
-    local preview_end_time=$(date +%s)
-    local preview_duration=$((preview_end_time - start_time))
-
     # 显示预览结果并询问是否确认
     if [ "$MODIFIED_COUNT" -gt 0 ]; then
         # 有文件需要处理
@@ -389,17 +382,11 @@ main() {
                 process_file "$file"
             done
 
-            # 计算总耗时
-            local end_time=$(date +%s)
-            local total_duration=$((end_time - start_time))
-            local process_duration=$((end_time - preview_end_time))
-
             # 显示最终统计信息
             print_header "处理完成 ✨"
             echo -e "${BOLD}统计信息:${NC}"
             echo -e "  处理文件数: ${CYAN}${#FILES_TO_PROCESS[@]}${NC}"
             echo -e "  成功修改: ${GREEN}$MODIFIED_COUNT${NC}"
-            echo -e "  总耗时: ${YELLOW}${total_duration}秒${NC} (预览: ${preview_duration}秒, 处理: ${process_duration}秒)"
 
             if [ "$MODIFIED_COUNT" -gt 0 ] && [ "$BACKUP_ENABLED" = true ]; then
                 echo
