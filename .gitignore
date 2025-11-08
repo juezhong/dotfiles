@@ -17,10 +17,14 @@ home_cfgs/zsh/.zcompcache
 home_cfgs/zsh/.zsh_sessions
 home_cfgs/zsh/self_env.zsh
 
-# 这个 zsh 目录是一个软链接
-xdg_config_cfgs/zsh
 xdg_config_cfgs/raycast/
 xdg_config_cfgs/siyuan/
 xdg_config_cfgs/iterm2/
 xdg_config_cfgs/htop/
 xdg_config_cfgs/fastfetch/
+
+# 这个 zsh 目录是一个软链接
+# The following options are symbolic links.
+xdg_config_cfgs/zsh
+xdg_config_cfgs/nvim
+

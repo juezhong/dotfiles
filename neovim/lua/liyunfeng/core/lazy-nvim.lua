@@ -1,5 +1,6 @@
 -- lazy.nvim initialization
 
+-- macOS neovim data path: /Users/liyunfeng/.local/share/nvim
 -- lazy.nvim check, if not exist will clone it
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
