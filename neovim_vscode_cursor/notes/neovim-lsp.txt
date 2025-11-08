@@ -1,0 +1,4 @@
+:lua vim.lsp.buf.hover()
+打开一个悬浮框说明
+:lua vim.lsp.buf.definition()
+跳转到函数定义

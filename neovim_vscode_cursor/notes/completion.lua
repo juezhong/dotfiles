@@ -1,0 +1,4 @@
+-- TODO: add autocmd and user command
+-- 自动补全的记录
+-- 主要使用 nvim-cmp 插件
+-- 还有其他的扩展插件比如 cmp-buffer, cmp-path, cmp-cmdline 等等

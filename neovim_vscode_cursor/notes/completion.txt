@@ -1,0 +1,82 @@
+TODO: add autocmd and user command
+自动补全的记录
+主要使用 nvim-cmp 插件
+还有其他的扩展插件比如 cmp-buffer, cmp-path, cmp-cmdline 等等
+
+nvim-cmp 只是一个补全引擎的插件，它自身无法完成补全的功能，需要通过一些
+其他的外部存储库和 sourced 来获取要补全的内容
+关于 nvim-cmp 的配置都写在 github 的仓库里面了，不好记录，直接贴一个链接
+https://github.com/hrsh7th/nvim-cmp
+主要是关于如何调整 source 和样式、按键映射的讲解
+Need plugins
+
+hrsh7th/nvim-cmp
+-- nvim-cmp's source plugin
+hrsh7th/cmp-emoji -- nvim-cmp source for emojis. { name = 'emoji' }
+hrsh7th/cmp-cmdline -- nvim-cmp source for vim's cmdline.
+    Completions for / search based on current buffer:
+    基于当前缓冲区的 / 搜索补全：
+        -- `/` cmdline setup.
+        cmp.setup.cmdline('/', {
+            mapping = cmp.mapping.preset.cmdline(),
+            sources = {
+                { name = 'buffer' }
+            }
+        })
+    Completions for command mode:
+    命令模式的补全：
+    `:` cmdline setup.
+    cmp.setup.cmdline(':', {
+        mapping = cmp.mapping.preset.cmdline(),
+        sources = cmp.config.sources({
+            { name = 'path' }
+        },
+            {
+                {
+                    name = 'cmdline',
+                    option = {
+                        ignore_cmds = { 'Man', '!' }
+                    }
+                }
+            })
+    })
+    For the buffer source to work, cmp-buffer is needed.
+    为了使缓冲源工作，需要 cmp-buffer。
+
+hrsh7th/cmp-path -- nvim-cmp source for filesystem paths.
+-- 使用默认配置
+文件系统路径的 nvim-cmp 源。
+sources = {
+    {
+        name = 'path',
+        option = {
+            -- Options go into this table
+        },
+    },
+},
+
+hrsh7th/cmp-calc -- nvim-cmp source for math calculation.
+sources = {
+    { name = 'calc' }
+}
+
+hrsh7th/cmp-buffer -- nvim-cmp source for buffer words.
+-- 使用默认配置
+nvim-cmp 缓冲区字源。
+sources = {
+    {
+        name = 'buffer',
+        -- Correct:
+        option = {
+            -- Options go into this table
+            keyword_pattern = [[\k\+]],
+        }
+    },
+}
+
+saadparwaiz1/cmp_luasnip -- luasnip completion source for nvim-cmp
+nvim-cmp 的 luasnip 补全源
+sources = {
+    { name = 'luasnip' },
+    -- more sources
+},
