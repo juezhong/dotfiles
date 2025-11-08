@@ -56,6 +56,18 @@ expand_path() {
     fi
 }
 
+# 标准化路径（移除末尾的斜杠，除非是根目录）
+# 参数: $1 - 路径
+# 返回: 标准化后的路径
+normalize_path() {
+    local path="$1"
+    # 移除末尾的斜杠，但保留根目录的斜杠
+    if [ "$path" != "/" ]; then
+        path="${path%/}"
+    fi
+    echo "$path"
+}
+
 # 计算路径深度（通过统计 / 的数量）
 # 参数: $1 - 路径
 # 返回: 路径深度（数字）
@@ -132,18 +144,42 @@ show_skipped_operations() {
 
 # 帮助信息
 show_help() {
-    print_header "使用说明"
+    print_header "软链接管理工具"
+
     echo -e "${BOLD}用法:${NC}"
-    echo -e "  ${CYAN}links.sh status${NC}            # 显示所有软链接的状态信息"
-    echo -e "  ${CYAN}links.sh all${NC}               # 根据 default_links 文件创建软链接"
-    echo -e "  ${CYAN}links.sh add LINK TARGET${NC}   # 添加一个从 LINK 到 TARGET 的软链接"
-    echo -e "  ${CYAN}links.sh clean${NC}             # 交互式删除软链接"
+    echo -e "  ${CYAN}./links.sh status${NC}"
+    echo -e "  ${CYAN}./links.sh all${NC}"
+    echo -e "  ${CYAN}./links.sh add${NC} ${YELLOW}<链接路径>${NC} ${YELLOW}<目标路径>${NC}"
+    echo -e "  ${CYAN}./links.sh clean${NC}"
     echo
-    echo -e "${BOLD}说明:${NC}"
-    echo -e "  ${GREEN}status${NC}  - 检查并显示软链接状态（已创建/未创建/冲突）"
-    echo -e "  ${GREEN}all${NC}     - 批量创建软链接，已存在的会自动跳过或询问覆盖"
-    echo -e "  ${GREEN}add${NC}     - 添加单个软链接到配置文件并创建"
-    echo -e "  ${GREEN}clean${NC}   - 选择性删除已创建的软链接"
+
+    echo -e "${BOLD}命令说明:${NC}"
+    echo -e "  ${GREEN}status${NC}  查看所有软链接的状态（已创建/未创建/冲突/被占用）"
+    echo -e "  ${GREEN}all${NC}     批量创建 default_links 文件中的所有软链接"
+    echo -e "  ${GREEN}add${NC}     添加并创建一个新的软链接"
+    echo -e "  ${GREEN}clean${NC}   交互式选择删除软链接（支持单个/多个/范围/全部）"
+    echo
+
+    echo -e "${BOLD}add 命令详细说明:${NC}"
+    echo -e "  格式: ${CYAN}./links.sh add${NC} ${YELLOW}<链接路径>${NC} ${YELLOW}<目标路径>${NC}"
+    echo
+    echo -e "  ${YELLOW}<链接路径>${NC}  要创建的软链接位置（通常是 ~ 开头的家目录路径）"
+    echo -e "  ${YELLOW}<目标路径>${NC}  链接指向的目标（相对路径默认相对于 ${CYAN}dotfiles${NC} 目录）"
+    echo
+    echo -e "  ${BOLD}路径规则:${NC}"
+    echo -e "    • 支持 ${CYAN}~${NC} 表示家目录"
+    echo -e "    • 支持绝对路径（以 ${CYAN}/${NC} 开头）"
+    echo -e "    • 相对路径默认相对于 ${CYAN}$CURRENT_DIR${NC}"
+    echo
+    echo -e "  ${BOLD}示例:${NC}"
+    echo -e "    ${CYAN}./links.sh add ~/.gitconfig home_cfgs/gitconfig${NC}"
+    echo -e "    ${GREEN}→${NC} 创建 ~/.gitconfig 指向 $CURRENT_DIR/home_cfgs/gitconfig"
+    echo
+    echo -e "    ${CYAN}./links.sh add ~/.config xdg_config_cfgs${NC}"
+    echo -e "    ${GREEN}→${NC} 创建 ~/.config 指向 $CURRENT_DIR/xdg_config_cfgs"
+    echo
+    echo -e "    ${CYAN}./links.sh add /etc/hosts /backup/hosts${NC}"
+    echo -e "    ${GREEN}→${NC} 创建 /etc/hosts 指向 /backup/hosts（绝对路径）"
     echo
 }
 
@@ -220,8 +256,8 @@ create_links_from_default() {
         if [ -z "$link" ] || [ -z "$target" ]; then
             continue
         fi
-        # 展开路径以计算实际深度
-        local expanded_link=$(expand_path "$link")
+        # 展开并标准化路径以计算实际深度
+        local expanded_link=$(normalize_path "$(expand_path "$link")")
         local depth=$(get_path_depth "$expanded_link")
         # 格式：深度|原始link|原始target
         echo "$depth|$link|$target" >> "$temp_sorted"
@@ -235,9 +271,9 @@ create_links_from_default() {
         local original_link="$link"
         local original_target="$target"
 
-        # 展开路径（处理 ~ 和相对路径）
-        link=$(expand_path "$link")
-        target=$(expand_path "$target")
+        # 展开路径（处理 ~ 和相对路径）并标准化（移除末尾斜杠）
+        link=$(normalize_path "$(expand_path "$link")")
+        target=$(normalize_path "$(expand_path "$target")")
 
         # 检查目标文件是否存在
         if [ ! -e "$target" ]; then
@@ -327,11 +363,13 @@ create_links_from_default() {
 
 # 添加单个软链接并保存到 default_links
 add_link() {
-    local input_link="$1"
-    local input_target="$2"
+    # 先标准化用户输入（移除末尾斜杠）
+    local input_link=$(normalize_path "$1")
+    local input_target=$(normalize_path "$2")
 
-    local link=$(expand_path "$1")
-    local target=$(expand_path "$2")
+    # 展开并标准化路径
+    local link=$(normalize_path "$(expand_path "$input_link")")
+    local target=$(normalize_path "$(expand_path "$input_target")")
 
     # 创建临时文件用于存储更新后的配置
     local temp_file=$(mktemp)
@@ -343,7 +381,9 @@ add_link() {
             if [ -z "$existing_link" ] || [ -z "$existing_target" ]; then
                 continue
             fi
-            if [ "$input_link" = "$existing_link" ] || [ "$(expand_path "$existing_link")" = "$link" ]; then
+            # 标准化现有配置的路径进行比较
+            local normalized_existing=$(normalize_path "$(expand_path "$existing_link")")
+            if [ "$input_link" = "$existing_link" ] || [ "$normalized_existing" = "$link" ]; then
                 # 找到匹配的链接，写入新的目标路径（使用原始格式）
                 echo "$input_link,$input_target" >> "$temp_file"
                 config_updated=true
@@ -571,9 +611,9 @@ show_status() {
 
         total=$((total + 1))
 
-        # 展开路径
-        local expanded_link=$(expand_path "$link")
-        local expanded_target=$(expand_path "$target")
+        # 展开并标准化路径
+        local expanded_link=$(normalize_path "$(expand_path "$link")")
+        local expanded_target=$(normalize_path "$(expand_path "$target")")
 
         # 检查链接状态
         if [ -L "$expanded_link" ]; then
@@ -681,7 +721,8 @@ clean_links() {
         if [ -z "$link" ] || [ -z "$target" ]; then
             continue
         fi
-        local expanded_link=$(expand_path "$link")
+        # 展开并标准化路径
+        local expanded_link=$(normalize_path "$(expand_path "$link")")
         local depth=$(get_path_depth "$expanded_link")
         # 格式：深度|原始link|原始target
         echo "$depth|$link|$target" >> "$temp_sorted"
@@ -700,8 +741,9 @@ clean_links() {
     local index=0
 
     while IFS='|' read -r depth link target; do
-        expanded_link=$(expand_path "$link")
-        expanded_target=$(expand_path "$target")
+        # 展开并标准化路径
+        expanded_link=$(normalize_path "$(expand_path "$link")")
+        expanded_target=$(normalize_path "$(expand_path "$target")")
         if [ -L "$expanded_link" ]; then
             index=$((index + 1))
             link_list[$index]="$link"
