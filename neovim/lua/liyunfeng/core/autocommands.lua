@@ -91,9 +91,9 @@ vim.api.nvim_create_autocmd("BufEnter", {
     callback = function()
         -- 为了和 clangd lsp 的自动格式化做匹配
         -- TODO: 可以修改会 4 个空格
-        vim.opt.tabstop = 2
+        vim.opt.tabstop = 4
         -- >> 和 << 的缩进数量
-        vim.opt.softtabstop = 2
-        vim.opt.shiftwidth = 2
+        vim.opt.softtabstop = 4
+        vim.opt.shiftwidth = 4
     end
 })

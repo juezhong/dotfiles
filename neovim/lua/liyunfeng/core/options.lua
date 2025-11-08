@@ -54,6 +54,9 @@ vim.opt.swapfile = false
 -- 设置编码格式
 -- vim.cmd("set encoding=utf-8")
 vim.opt.encoding = "utf-8"
+-- 设置文件格式为 Unix (LF)，确保在 macOS 上使用正确的行尾符
+vim.opt.fileformat = "unix"
+vim.opt.fileformats = "unix,dos,mac"
 -- split windows
 -- 拆分后新窗口位于当前窗口的右侧
 -- 拆分后的新窗口位于当前窗口下方

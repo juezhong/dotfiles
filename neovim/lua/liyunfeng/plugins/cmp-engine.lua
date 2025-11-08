@@ -243,7 +243,7 @@ return {
                     {
                         name = "cmdline",
                         option = {
-                            ignore_cmds = { "Man", "!" } -- 忽略某些命令不显示补全
+                            ignore_cmds = { "Man", "!" , "w"} -- 忽略某些命令不显示补全
                         }
                     },
                 }

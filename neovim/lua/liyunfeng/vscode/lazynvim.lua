@@ -12,5 +12,6 @@ require("lazy").setup({
 	-- { import = "user.plugins_notvscode", cond = (function() return not vim.g.vscode end) },
 	-- { import = "user.plugins_always",    cond = true },
 	-- { import = "user.plugins_vscode",    cond = (function() return vim.g.vscode end) },
+	-- 只导入 VSCode/Cursor 兼容的插件
     { import = "liyunfeng.vscode.plugins", cond = true },
 })

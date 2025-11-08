@@ -8,8 +8,9 @@
 vim.g.mapleader = ","
 -- 敲三次 leader 键进入 cmdline 输入命令
 vim.keymap.set("n", "<leader><leader><leader>", ":")
+vim.keymap.set("n", "<leader>ww",  ":w<cr>")
 vim.keymap.set("n", "<leader>wa", ":wa<cr>")
-vim.keymap.set("n", "<leader>q", ":q<cr>")
+vim.keymap.set("n", "<leader>q",  ":q<cr>")
 
 --[[ Normal mode ]]
 vim.keymap.set("n", "J", "5j")

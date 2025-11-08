@@ -64,7 +64,7 @@ return {
         -- 放在 opts 字段中的设置根本没用，也许是抄错了，不适用于 lazy.nvim，lazy 更改默认的属性可能是用别的字段
         flash.setup({
             -- labels = "abcdefghijklmnopqrstuvwxyz",
-            labels = "asdfghjklqwertyuiopzxcvbnm",
+            labels = "aoeuidhtnspyfgcrl",
             search = {
                 -- search/jump in all windows
                 multi_window = true,
@@ -129,7 +129,7 @@ return {
                 -- Enable this to use rainbow colors to highlight labels
                 -- Can be useful for visualizing Treesitter ranges.
                 rainbow = {
-                    enabled = true,
+                    -- enabled = true,
                     -- number between 1 and 9
                     -- shade = 5,
                 },
