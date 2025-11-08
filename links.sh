@@ -14,8 +14,6 @@ CACHE_FILE="${LOG_FILES[0]}"
 LOG_FILE="${LOG_FILES[1]}"
 SKIPPED_OPERATIONS_FILE="${LOG_FILES[2]}"
 
-created_links=()
-
 # 颜色定义
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -58,12 +56,34 @@ expand_path() {
     fi
 }
 
+# 计算路径深度（通过统计 / 的数量）
+# 参数: $1 - 路径
+# 返回: 路径深度（数字）
+get_path_depth() {
+    local path="$1"
+    # 移除开头和结尾的 /，然后计算剩余 / 的数量
+    path="${path#/}"
+    path="${path%/}"
+    if [ -z "$path" ]; then
+        echo 0
+    else
+        echo "$path" | tr -cd '/' | wc -c | tr -d ' '
+    fi
+}
+
 # 检查是否需要 sudo 权限
 # 参数: $1 - 要检查的文件或目录路径
 # 返回: 0 - 需要 sudo, 1 - 不需要 sudo
 needs_sudo() {
     local path="$1"
     local dir=$(dirname "$path")
+
+    # 递归查找第一个存在的父目录
+    while [ ! -e "$dir" ] && [ "$dir" != "/" ]; do
+        dir=$(dirname "$dir")
+    done
+
+    # 检查目录是否可写
     if [ ! -w "$dir" ]; then
         return 0  # 目录不可写，需要 sudo
     fi
@@ -152,9 +172,9 @@ cleanup() {
                 print_info "- $log_file"
             fi
         done
+        # 失败退出时也显示跳过的操作
+        show_skipped_operations
     fi
-    # 跳过操作文件总是清理
-    [ -f "$SKIPPED_OPERATIONS_FILE" ] && rm "$SKIPPED_OPERATIONS_FILE"
 }
 
 # 设置退出钩子
@@ -186,12 +206,25 @@ create_links_from_default() {
         exit 1
     fi
 
+    # 先读取所有配置到临时文件，并添加深度信息
+    local temp_sorted=$(mktemp)
     while IFS=',' read -r link target; do
         # 跳过空行或格式不正确的行
         if [ -z "$link" ] || [ -z "$target" ]; then
             continue
         fi
+        # 展开路径以计算实际深度
+        local expanded_link=$(expand_path "$link")
+        local depth=$(get_path_depth "$expanded_link")
+        # 格式：深度|原始link|原始target
+        echo "$depth|$link|$target" >> "$temp_sorted"
+    done < "$DEFAULT_LINKS_FILE"
 
+    # 按深度排序（从浅到深），确保父目录先创建
+    sort -t'|' -k1 -n "$temp_sorted" > "${temp_sorted}.sorted"
+
+    # 按排序后的顺序创建软链接
+    while IFS='|' read -r depth link target; do
         local original_link="$link"
         local original_target="$target"
 
@@ -199,7 +232,7 @@ create_links_from_default() {
         link=$(expand_path "$link")
         target=$(expand_path "$target")
 
-        # 检查目标文件否存在
+        # 检查目标文件是否存在
         if [ ! -e "$target" ]; then
             log_message "Error: 目标文件不存在: $target"
             exit 1
@@ -277,8 +310,11 @@ create_links_from_default() {
         # 记录已创建的链接（用于出错时回滚）
         echo "$original_link,$original_target" >> "$CACHE_FILE"
         print_success "已创建软链接: $link -> $target"
-    done < "$DEFAULT_LINKS_FILE"
-    
+    done < "${temp_sorted}.sorted"
+
+    # 清理临时文件
+    rm -f "$temp_sorted" "${temp_sorted}.sorted"
+
     log_message "批量创建软链接完成"
 }
 
@@ -294,7 +330,7 @@ add_link() {
     local temp_file=$(mktemp)
     local config_updated=false
 
-    # 检查并更新配置文件
+    # 准备配置文件更新内容（先不写入，等软链接创建成功后再更新）
     if [ -f "$DEFAULT_LINKS_FILE" ]; then
         while IFS=',' read -r existing_link existing_target || [ -n "$existing_link" ]; do
             if [ -z "$existing_link" ] || [ -z "$existing_target" ]; then
@@ -322,14 +358,6 @@ add_link() {
         echo "$config_link,$input_target" >> "$temp_file"
     fi
 
-    # 更新配置文件
-    mv "$temp_file" "$DEFAULT_LINKS_FILE"
-    if [ "$config_updated" = true ]; then
-        log_message "已更新配置文件中的链接: $config_link -> $input_target"
-    else
-        log_message "已添加新配置到文件: $config_link -> $input_target"
-    fi
-
     > "$CACHE_FILE"
     > "$SKIPPED_OPERATIONS_FILE"
     
@@ -341,9 +369,6 @@ add_link() {
         log_message "Error: 目标文件不存在: $target"
         exit 1
     fi
-
-    # 在创建软链接前先记录到 CACHE_FILE
-    echo "$input_link,$input_target" >> "$CACHE_FILE"
 
     local link_dir=$(dirname "$link")
     if [ ! -d "$link_dir" ]; then
@@ -414,6 +439,17 @@ add_link() {
     print_success "已创建软链接: $link -> $target"
     log_message "成功创建软链接: $link -> $target"
 
+    # 记录已创建的链接到 CACHE_FILE（用于出错时回滚）
+    echo "$input_link,$input_target" >> "$CACHE_FILE"
+
+    # 软链接创建成功后，更新配置文件
+    mv "$temp_file" "$DEFAULT_LINKS_FILE"
+    if [ "$config_updated" = true ]; then
+        log_message "已更新配置文件中的链接: $config_link -> $input_target"
+    else
+        log_message "已添加新配置到文件: $config_link -> $input_target"
+    fi
+
     if [[ "$input_link" == "$HOME"* ]]; then
         input_link="~${input_link#$HOME}"
     fi
@@ -445,26 +481,39 @@ clean_links() {
         return
     fi
 
-    print_info "以下是将要清理的软链接:"
-    echo
-
-    # 首先显示所有要清理的链接
-    local found_links=false
+    # 先读取所有配置到临时文件，并添加深度信息
+    local temp_sorted=$(mktemp)
     while IFS=',' read -r link target; do
         if [ -z "$link" ] || [ -z "$target" ]; then
             continue
         fi
+        local expanded_link=$(expand_path "$link")
+        local depth=$(get_path_depth "$expanded_link")
+        # 格式：深度|原始link|原始target
+        echo "$depth|$link|$target" >> "$temp_sorted"
+    done < "$DEFAULT_LINKS_FILE"
+
+    # 按深度反向排序（从深到浅），确保子目录先删除
+    sort -t'|' -k1 -nr "$temp_sorted" > "${temp_sorted}.sorted"
+
+    print_info "以下是将要清理的软链接（按删除顺序）:"
+    echo
+
+    # 首先显示所有要清理的链接
+    local found_links=false
+    while IFS='|' read -r depth link target; do
         expanded_link=$(expand_path "$link")
         expanded_target=$(expand_path "$target")
         if [ -L "$expanded_link" ]; then
             echo -e "  ${CYAN}$expanded_link${NC} -> $expanded_target"
             found_links=true
         fi
-    done < "$DEFAULT_LINKS_FILE"
+    done < "${temp_sorted}.sorted"
     
-    # 如果没有找到任何链接，直接返回
+    # 如果没有找到任何链接，清理临时文件并返回
     if [ "$found_links" = false ]; then
         print_warning "未找到任何有效的软链接"
+        rm -f "$temp_sorted" "${temp_sorted}.sorted"
         return
     fi
     
@@ -474,11 +523,8 @@ clean_links() {
     echo
 
     if [[ "$choice" =~ ^[Yy]$ ]]; then
-        # 执行删除操作
-        while IFS=',' read -r link target; do
-            if [ -z "$link" ] || [ -z "$target" ]; then
-                continue
-            fi
+        # 执行删除操作（按深度从深到浅）
+        while IFS='|' read -r depth link target; do
             expanded_link=$(expand_path "$link")
             expanded_target=$(expand_path "$target")
             if [ -L "$expanded_link" ]; then
@@ -501,11 +547,14 @@ clean_links() {
                     fi
                 fi
             fi
-        done < "$DEFAULT_LINKS_FILE"
+        done < "${temp_sorted}.sorted"
         log_message "清理软链接完成"
     else
         log_message "用户取消清理操作"
     fi
+
+    # 清理临时文件
+    rm -f "$temp_sorted" "${temp_sorted}.sorted"
 }
 
 # 检查输入参数

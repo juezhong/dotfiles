@@ -2,3 +2,4 @@
 ~/.config,xdg_config_cfgs
 ~/.config/zsh,home_cfgs/zsh
 ~/.zprofile,home_cfgs/zsh/.zprofile
+~/.config/nvim,neovim
