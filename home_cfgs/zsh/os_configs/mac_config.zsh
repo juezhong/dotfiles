@@ -39,26 +39,28 @@ if command -v zoxide > /dev/null 2>&1; then
   eval "$($zoxide_path init zsh)"
 fi
 
-if [[ -e self_env.zsh ]]; then
-	source self_env.zsh
+# init uv
+if command -v uv > /dev/null 2>&1; then
+  eval "$(uv generate-shell-completion zsh)"
 fi
+
+#init nvm
+if [ -n "$(fd 'nvm.sh' /opt/homebrew -I 2>/dev/null)" ]; then
+  export NVM_DIR="$HOME/.nvm"
+  [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
+  [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
+fi
+
 ###
 ### Initialize the plugins installed via 'brew install'.
 ###
 
-# >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/opt/homebrew/Caskroom/miniconda/base/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
-else
-    if [ -f "/opt/homebrew/Caskroom/miniconda/base/etc/profile.d/conda.sh" ]; then
-        . "/opt/homebrew/Caskroom/miniconda/base/etc/profile.d/conda.sh"
-    else
-        export PATH="/opt/homebrew/Caskroom/miniconda/base/bin:$PATH"
-    fi
-fi
-unset __conda_setup
-# <<< conda initialize <<<
-
 /Users/liyunfeng/scripts/pokemon -r
+
+if [[ -e "$ZSH_HOME/self_env.zsh" ]]; then
+	#source "$ZSH_HOME/self_env.zsh"
+fi
+export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
+export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
+export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
+export CMAKE_PREFIX_PATH="/opt/homebrew/opt/llvm"

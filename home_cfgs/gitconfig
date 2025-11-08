@@ -1,7 +1,10 @@
 [user]
 	email = 1193230388@qq.com
 	name = liyunfeng
+	signingkey = 1193230388@qq.com
 [http]
-	proxy = http://127.0.0.1:10810
+	proxy = http://127.0.0.1:10808
 [https]
-	proxy = https://127.0.0.1:10810
+	proxy = https://127.0.0.1:10808
+[commit]
+	gpgsign = true

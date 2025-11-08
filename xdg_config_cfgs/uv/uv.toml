@@ -1,0 +1,14 @@
+# 使用清华大学镜像源作为默认源
+[[index]]
+name = "tsinghua"
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
+
+# 添加备用镜像源
+[[index]]
+name = "aliyun"
+url = "https://mirrors.aliyun.com/pypi/simple/"
+
+[[index]]
+name = "ustc"
+url = "https://pypi.mirrors.ustc.edu.cn/simple"

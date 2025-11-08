@@ -102,19 +102,20 @@ zinit wait lucid depth"1" for \
 # 所以要分两步，一次安装 zoxide 命令，一次加载 zoxide.plugin.zsh 文件
 
 # 检测有没有 zoxide 命令
-if command -v zoxide > /dev/null 2>&1; then
-  #echo "Command zoxide exists."
-  zoxide_path=$(command -v zoxide)
-  eval "$($zoxide_path init zsh)"
-else
-  #echo "Command zoxide does not exist."
-  # 没有，则安装 zoxide 命令
-  export $proxy_env
-  zinit ice wait lucid depth"1" from"gh-r" as"command" atclone"./zoxide init zsh > init.zsh" \
-      src"init.zsh"
-  zinit load ajeetdsouza/zoxide
-  unset ALL_PROXY  
-fi
+# 使用 brew 安装
+##if command -v zoxide > /dev/null 2>&1; then
+##  #echo "Command zoxide exists."
+##  zoxide_path=$(command -v zoxide)
+##  eval "$($zoxide_path init zsh)"
+##else
+##  #echo "Command zoxide does not exist."
+##  # 没有，则安装 zoxide 命令
+##  export $proxy_env
+##  zinit ice wait lucid depth"1" from"gh-r" as"command" atclone"./zoxide init zsh > init.zsh" \
+##      src"init.zsh"
+##  zinit load ajeetdsouza/zoxide
+##  unset ALL_PROXY  
+##fi
 
 #fzf --zsh > init.zsh 
 #/opt/homebrew/bin/fzf
