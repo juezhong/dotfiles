@@ -360,7 +360,7 @@ add_link() {
 
     > "$CACHE_FILE"
     > "$SKIPPED_OPERATIONS_FILE"
-    
+
     print_header "添加新的软链接"
     print_info "$input_link -> $input_target"
 
@@ -467,10 +467,72 @@ clean_logs() {
     [ $cleaned -eq 1 ] && print_success "已清理所有日志文件"
 }
 
+# 解析用户选择的编号
+# 参数: $1 - 用户输入的选择字符串（如 "1,2,3" 或 "1-3" 或 "all"）
+#       $2 - 最大编号
+# 返回: 空格分隔的编号列表
+parse_selection() {
+    local input="$1"
+    local max_num="$2"
+    local result=""
+
+    # 处理 "all" 或 "*"
+    if [[ "$input" =~ ^(all|\*|a)$ ]]; then
+        for ((i=1; i<=max_num; i++)); do
+            result="$result $i"
+        done
+        echo "$result"
+        return 0
+    fi
+
+    # 移除空格
+    input="${input// /}"
+
+    # 按逗号分割
+    IFS=',' read -ra PARTS <<< "$input"
+
+    for part in "${PARTS[@]}"; do
+        # 检查是否是范围（如 1-3）
+        if [[ "$part" =~ ^([0-9]+)-([0-9]+)$ ]]; then
+            local start="${BASH_REMATCH[1]}"
+            local end="${BASH_REMATCH[2]}"
+
+            # 验证范围
+            if [ "$start" -gt "$end" ]; then
+                echo "Error: 无效范围 $part" >&2
+                return 1
+            fi
+            if [ "$start" -lt 1 ] || [ "$end" -gt "$max_num" ]; then
+                echo "Error: 范围超出 1-$max_num: $part" >&2
+                return 1
+            fi
+
+            # 添加范围内的所有数字
+            for ((i=start; i<=end; i++)); do
+                result="$result $i"
+            done
+        # 检查是否是单个数字
+        elif [[ "$part" =~ ^[0-9]+$ ]]; then
+            if [ "$part" -lt 1 ] || [ "$part" -gt "$max_num" ]; then
+                echo "Error: 编号超出范围 1-$max_num: $part" >&2
+                return 1
+            fi
+            result="$result $part"
+        else
+            echo "Error: 无效输入: $part" >&2
+            return 1
+        fi
+    done
+
+    # 去重并排序
+    echo "$result" | tr ' ' '\n' | sort -u -n | tr '\n' ' '
+    return 0
+}
+
 # 清理软链接和文件
 clean_links() {
     log_message "开始清理软链接"
-    
+
     if [ ! -f "$DEFAULT_LINKS_FILE" ]; then
         log_message "Error: 在当前目录未找到 default_links 文件"
         exit 1
@@ -496,62 +558,115 @@ clean_links() {
     # 按深度反向排序（从深到浅），确保子目录先删除
     sort -t'|' -k1 -nr "$temp_sorted" > "${temp_sorted}.sorted"
 
-    print_info "以下是将要清理的软链接（按删除顺序）:"
-    echo
+    print_header "已创建的软链接列表"
 
-    # 首先显示所有要清理的链接
-    local found_links=false
+    # 将已存在的软链接存储到数组中
+    declare -a link_list
+    declare -a target_list
+    declare -a expanded_link_list
+    declare -a expanded_target_list
+    local index=0
+
     while IFS='|' read -r depth link target; do
         expanded_link=$(expand_path "$link")
         expanded_target=$(expand_path "$target")
         if [ -L "$expanded_link" ]; then
-            echo -e "  ${CYAN}$expanded_link${NC} -> $expanded_target"
-            found_links=true
+            index=$((index + 1))
+            link_list[$index]="$link"
+            target_list[$index]="$target"
+            expanded_link_list[$index]="$expanded_link"
+            expanded_target_list[$index]="$expanded_target"
+            echo -e "  ${BOLD}${CYAN}[$index]${NC} ${expanded_link} ${YELLOW}→${NC} ${expanded_target}"
         fi
     done < "${temp_sorted}.sorted"
-    
+
     # 如果没有找到任何链接，清理临时文件并返回
-    if [ "$found_links" = false ]; then
+    if [ "$index" -eq 0 ]; then
         print_warning "未找到任何有效的软链接"
         rm -f "$temp_sorted" "${temp_sorted}.sorted"
         return
     fi
-    
-    # 确认是否删除
+
     echo
-    read -p "$(echo -e "${YELLOW}是否确认删除以上软链接？${NC}[y/N]: ")" choice
+    print_info "提示: 可以输入单个编号(如 1)、多个编号(如 1,2,3)、范围(如 1-3)或 'all' 选择全部"
     echo
 
-    if [[ "$choice" =~ ^[Yy]$ ]]; then
-        # 执行删除操作（按深度从深到浅）
-        while IFS='|' read -r depth link target; do
-            expanded_link=$(expand_path "$link")
-            expanded_target=$(expand_path "$target")
-            if [ -L "$expanded_link" ]; then
-                if needs_sudo "$expanded_link"; then
-                    if confirm_operation "删除软链接" "$expanded_link"; then
-                        if sudo rm "$expanded_link"; then
-                            log_message "成功删除软链接: $expanded_link -> $target"
-                        else
-                            log_message "Error: 删除软链接失败: $expanded_link"
-                        fi
-                    else
-                        log_message "Warning: 用户取消删除软链接: $expanded_link"
-                        record_skipped_operation "sudo rm $expanded_link"
-                    fi
-                else
-                    if rm "$expanded_link"; then
+    # 循环直到用户输入有效选择或取消
+    local selected_indices=""
+    while true; do
+        read -p "$(echo -e "${YELLOW}请选择要删除的软链接编号${NC} [1-$index 或 all]: ")" user_input
+
+        # 如果用户按 Ctrl+C 或输入空，取消操作
+        if [ -z "$user_input" ]; then
+            print_warning "操作已取消"
+            log_message "用户取消清理操作"
+            rm -f "$temp_sorted" "${temp_sorted}.sorted"
+            return
+        fi
+
+        # 解析用户输入
+        selected_indices=$(parse_selection "$user_input" "$index" 2>&1)
+        if [ $? -eq 0 ]; then
+            break
+        else
+            print_error "$selected_indices"
+        fi
+    done
+
+    # 显示选中的项
+    echo
+    print_info "您选择删除以下软链接（按删除顺序）:"
+    echo
+    for i in $selected_indices; do
+        echo -e "  ${BOLD}${CYAN}[$i]${NC} ${expanded_link_list[$i]} ${YELLOW}→${NC} ${expanded_target_list[$i]}"
+    done
+
+    # 最终确认
+    echo
+    read -p "$(echo -e "${BOLD}${YELLOW}确认删除以上软链接？[y/N]:${NC} ")" confirm_choice
+    echo
+
+    if [[ ! "$confirm_choice" =~ ^[Yy]$ ]]; then
+        print_warning "操作已取消"
+        log_message "用户取消清理操作"
+        rm -f "$temp_sorted" "${temp_sorted}.sorted"
+        return
+    fi
+
+    # 执行删除操作（按选择的顺序）
+    for i in $selected_indices; do
+        local expanded_link="${expanded_link_list[$i]}"
+        local target="${target_list[$i]}"
+
+        if [ -L "$expanded_link" ]; then
+            if needs_sudo "$expanded_link"; then
+                if confirm_operation "删除软链接" "$expanded_link"; then
+                    if sudo rm "$expanded_link"; then
+                        print_success "已删除: $expanded_link"
                         log_message "成功删除软链接: $expanded_link -> $target"
                     else
+                        print_error "删除失败: $expanded_link"
                         log_message "Error: 删除软链接失败: $expanded_link"
                     fi
+                else
+                    log_message "Warning: 用户取消删除软链接: $expanded_link"
+                    record_skipped_operation "sudo rm $expanded_link"
+                fi
+            else
+                if rm "$expanded_link"; then
+                    print_success "已删除: $expanded_link"
+                    log_message "成功删除软链接: $expanded_link -> $target"
+                else
+                    print_error "删除失败: $expanded_link"
+                    log_message "Error: 删除软链接失败: $expanded_link"
                 fi
             fi
-        done < "${temp_sorted}.sorted"
-        log_message "清理软链接完成"
-    else
-        log_message "用户取消清理操作"
-    fi
+        else
+            print_warning "软链接已不存在: $expanded_link"
+        fi
+    done
+
+    log_message "清理软链接完成"
 
     # 清理临时文件
     rm -f "$temp_sorted" "${temp_sorted}.sorted"

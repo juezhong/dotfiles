@@ -1,17 +1,22 @@
 .DS_Store
 todo
+*.bak
+
 emacs/*~
 emacs/elpa
 emacs/tramp
 emacs/transient
 emacs/auto-save-list
+
 neovim/lazy-lock.json
+
 home_cfgs/zsh/.zcompdump*
 home_cfgs/zsh/.zsh_history
 home_cfgs/zsh/.histfile
 home_cfgs/zsh/.zcompcache
 home_cfgs/zsh/.zsh_sessions
 home_cfgs/zsh/self_env.zsh
+
 # 这个 zsh 目录是一个软链接
 xdg_config_cfgs/zsh
 xdg_config_cfgs/raycast/
