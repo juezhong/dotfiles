@@ -28,3 +28,5 @@ xdg_config_cfgs/fastfetch/
 xdg_config_cfgs/zsh
 xdg_config_cfgs/nvim
 
+xdg_config_cfgs/snipaste/history
+xdg_config_cfgs/snipaste/splog.txt
