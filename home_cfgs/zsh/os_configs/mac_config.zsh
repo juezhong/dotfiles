@@ -55,10 +55,10 @@ fi
 ### Initialize the plugins installed via 'brew install'.
 ###
 
-/Users/liyunfeng/scripts/pokemon -r
+# /Users/liyunfeng/scripts/pokemon -r
 
 if [[ -e "$ZSH_HOME/self_env.zsh" ]]; then
-	#source "$ZSH_HOME/self_env.zsh"
+	source "$ZSH_HOME/self_env.zsh"
 fi
 export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
 export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
