@@ -1,15 +1,6 @@
+# .git/hooks/prepare-commit-msg
 #!/bin/sh
-# 自动在提交信息末尾添加 Signed-off-by（若尚未存在）
-# 配合 core.hooksPath = ~/.config/git/hooks 使用
-file="$1"
-[ ! -f "$file" ] && exit 0
-if ! grep -q '^Signed-off-by:' "$file"; then
-	name=$(git config user.name)
-	email=$(git config user.email)
-	if [ -n "$name" ] && [ -n "$email" ]; then
-		# 确保末尾有空行再追加
-		[ -n "$(tail -c1 "$file" 2>/dev/null)" ] && echo "" >> "$file"
-		echo "Signed-off-by: $name <$email>" >> "$file"
-	fi
-fi
-exit 0
+
+SOB="Signed-off-by: $(git config user.name) <$(git config user.email)>"
+
+grep -q "^$SOB" "$1" || echo "\n$SOB" >> "$1"
