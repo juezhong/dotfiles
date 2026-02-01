@@ -8,3 +8,5 @@
 	proxy = https://127.0.0.1:10808
 [commit]
 	gpgsign = true
+[core]
+	hooksPath = ~/.config/git/hooks
