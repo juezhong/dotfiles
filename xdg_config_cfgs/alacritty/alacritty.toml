@@ -1,0 +1,1362 @@
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║                    🖥️ Alacritty 终端模拟器完整配置文件                        ║
+# ║                         版本: 0.16.1 (2026年2月)                              ║
+# ║                                                                              ║
+# ║  📍 配置文件位置 (按优先级排序):                                               ║
+# ║     1. $XDG_CONFIG_HOME/alacritty/alacritty.toml                             ║
+# ║     2. $XDG_CONFIG_HOME/alacritty.toml                                       ║
+# ║     3. $HOME/.config/alacritty/alacritty.toml                                ║
+# ║     4. $HOME/.alacritty.toml                                                 ║
+# ║     5. /etc/alacritty/alacritty.toml                                         ║
+# ║                                                                              ║
+# ║  📚 官方文档: https://alacritty.org/config-alacritty.html                     ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │                           🔧 [general] 通用配置                               │
+# │                         控制 Alacritty 的基本行为                             │
+# └──────────────────────────────────────────────────────────────────────────────┘
+[general]
+
+# 📥 导入其他配置文件
+# 可以将配置拆分到多个文件中，便于管理
+# 支持绝对路径(/)、相对于用户目录(~/)、相对于当前配置文件的路径
+# 导入按顺序加载，后面的配置会覆盖前面的
+# 示例:
+# import = [
+#     "~/.config/alacritty/themes/dracula.toml",      # 主题配置
+#     "~/.config/alacritty/keybindings.toml",         # 快捷键配置
+#     "alacritty-theme/themes/gruvbox_dark.toml",     # 相对路径导入
+# ]
+import = []
+
+# 📂 工作目录
+# 设置 shell 启动时的工作目录
+# "None" = 使用父进程的工作目录
+# 也可以设置为具体路径，如 "/Users/username/projects"
+working_directory = "None"
+
+# 🔄 实时配置重载
+# true = 修改配置文件后自动重新加载（无需重启）
+# false = 需要重启 Alacritty 才能应用更改
+live_config_reload = true
+
+# 🔌 IPC 套接字 (仅 Unix 系统)
+# true = 启用 IPC，允许使用 `alacritty msg` 命令与运行中的实例通信
+# false = 禁用 IPC 功能
+# 用途: 可以通过命令行修改运行中的 Alacritty 配置
+ipc_socket = true
+
+
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │                           🌍 [env] 环境变量                                   │
+# │                      设置 Alacritty 启动的 shell 环境变量                      │
+# └──────────────────────────────────────────────────────────────────────────────┘
+[env]
+# 这里定义的所有键值对都会作为环境变量传递给 Alacritty 启动的 shell
+# 某些变量可能会覆盖 Alacritty 自身设置的变量
+
+# 🖥️ X11 缩放因子 (Linux/BSD)
+# 用于在 X11 环境下控制 DPI 缩放
+# WINIT_X11_SCALE_FACTOR = "1.0"
+
+# 📝 终端类型
+# 设置 TERM 环境变量，影响终端功能检测
+# TERM = "alacritty"
+
+
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │                           🪟 [window] 窗口配置                                │
+# │                         控制窗口外观、大小和行为                               │
+# └──────────────────────────────────────────────────────────────────────────────┘
+[window]
+
+# 📐 窗口尺寸 (需要重启生效)
+# columns = 列数 (字符数，不是像素)，最小值为 2
+# lines = 行数 (字符数，不是像素)
+# 设置为 0 表示使用窗口管理器推荐的大小
+dimensions = { columns = 0, lines = 0 }
+
+# 📍 窗口位置 (Wayland 下无效)
+# 指定窗口启动时的位置（像素）
+# "None" = 由窗口管理器决定位置
+# 也可以设置为 { x = 100, y = 100 }
+position = "None"
+
+# 🔲 内边距
+# 窗口边缘与终端内容之间的空白区域（像素）
+# 此值会根据 DPI 进行缩放，并在两侧同时应用
+# x = 左右内边距, y = 上下内边距
+padding = { x = 0, y = 0 }
+
+# 📊 动态内边距
+# true = 将额外的内边距均匀分布在终端内容周围
+# false = 额外空间只添加到右侧和底部
+dynamic_padding = false
+
+# 🎨 窗口装饰
+# "Full" = 完整边框和标题栏
+# "None" = 无边框和标题栏
+# "Transparent" = 标题栏 + 透明背景 + 标题栏按钮 (仅 macOS)
+# "Buttonless" = 标题栏 + 透明背景 + 无按钮 (仅 macOS)
+decorations = "Full"
+
+# 🌫️ 窗口透明度
+# 范围: 0.0 (完全透明) 到 1.0 (完全不透明)
+# 需要合成器支持透明效果
+opacity = 1.0
+
+# 💨 背景模糊 (macOS/KDE Wayland)
+# true = 请求合成器对透明窗口后面的内容进行模糊处理
+# false = 不模糊背景
+blur = false
+
+# 🚀 启动模式 (需要重启生效)
+# "Windowed" = 普通窗口模式
+# "Maximized" = 最大化启动
+# "Fullscreen" = 全屏启动
+# "SimpleFullscreen" = 简单全屏，可以在上面叠加其他窗口 (仅 macOS)
+startup_mode = "Windowed"
+
+# 📝 窗口标题
+# 设置窗口的默认标题
+title = "Alacritty"
+
+# 🔄 动态标题
+# true = 允许终端应用程序修改窗口标题
+# false = 窗口标题固定不变
+dynamic_title = true
+
+# 🏷️ 窗口类 (仅 Linux/BSD)
+# instance = 实例名称
+# general = 通用类名 (在 Wayland 上用作 app_id)
+class = { instance = "Alacritty", general = "Alacritty" }
+
+# 🎭 装饰主题变体
+# "Dark" = 深色主题
+# "Light" = 浅色主题
+# "None" = 使用系统默认主题
+decorations_theme_variant = "None"
+
+# 📏 调整大小增量 (macOS/X11)
+# true = 窗口大小调整时按单元格尺寸的整数倍进行
+# false = 自由调整大小
+resize_increments = false
+
+# ⌥ Option 键行为 (仅 macOS)
+# "OnlyLeft" = 只有左 Option 键作为 Alt
+# "OnlyRight" = 只有右 Option 键作为 Alt
+# "Both" = 两个 Option 键都作为 Alt
+# "None" = Option 键保持默认行为
+option_as_alt = "None"
+
+# 📊 窗口层级
+# "Normal" = 普通窗口层级
+# "AlwaysOnTop" = 窗口始终置顶
+level = "Normal"
+
+
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │                          📜 [scrolling] 滚动配置                              │
+# │                           控制终端滚动缓冲区行为                               │
+# └──────────────────────────────────────────────────────────────────────────────┘
+[scrolling]
+
+# 📚 历史记录行数
+# 滚动缓冲区中保存的最大行数
+# 设置为 0 将禁用滚动功能
+# 最大值: 100000
+history = 10000
+
+# 🖱️ 滚动倍数
+# 每次滚动输入时滚动的行数
+# 值越大，滚动越快
+multiplier = 3
+
+
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │                           🔤 [font] 字体配置                                  │
+# │                        控制终端文本的字体和大小                                │
+# └──────────────────────────────────────────────────────────────────────────────┘
+[font]
+
+# 📝 普通字体
+# family = 字体家族名称
+# style = 字体样式
+# 默认值因操作系统而异:
+#   - Linux/BSD: monospace, Regular
+#   - Windows: Consolas, Regular
+#   - macOS: Menlo, Regular
+normal = { family = "monospace", style = "Regular" }
+
+# 💪 粗体字体
+# 如果未指定 family，将使用 normal 字体的 family
+bold = { style = "Bold" }
+
+# 🎨 斜体字体
+# 如果未指定 family，将使用 normal 字体的 family
+italic = { style = "Italic" }
+
+# 💪🎨 粗斜体字体
+# 如果未指定 family，将使用 normal 字体的 family
+bold_italic = { style = "Bold Italic" }
+
+# 📏 字体大小
+# 以点 (points) 为单位
+size = 11.25
+
+# 📐 字符偏移
+# 调整字符周围的额外空间
+# x = 字母间距调整
+# y = 行间距调整
+offset = { x = 0, y = 0 }
+
+# 🔤 字形偏移
+# 调整字形在单元格内的位置
+# x 增加 = 向右移动
+# y 增加 = 向上移动
+glyph_offset = { x = 0, y = 0 }
+
+# 📦 内置方框绘制字符
+# true = 使用 Alacritty 内置字体绘制方框字符 (U+2500-U+259F)、
+#        传统计算符号 (U+1FB00-U+1FB3B) 和 Powerline 符号 (U+E0B0-U+E0B3)
+# false = 使用字体中的字符
+builtin_box_drawing = true
+
+
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │                           🎨 [colors] 颜色配置                                │
+# │                         控制终端的所有颜色设置                                 │
+# └──────────────────────────────────────────────────────────────────────────────┘
+[colors]
+
+# 🖼️ 透明背景颜色
+# true = window.opacity 应用于所有单元格背景
+# false = 只应用于默认背景色
+transparent_background_colors = false
+
+# 💪 粗体文本使用亮色
+# true = 粗体文本使用亮色变体绘制
+# false = 粗体文本使用普通颜色
+draw_bold_text_with_bright_colors = false
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 🎯 主要颜色 [colors.primary]
+# ─────────────────────────────────────────────────────────────────────────────
+[colors.primary]
+# 前景色 (文本颜色)
+foreground = "#d8d8d8"
+
+# 背景色
+background = "#181818"
+
+# 暗淡前景色
+# 如果未设置，将根据前景色自动计算
+dim_foreground = "#828482"
+
+# 明亮前景色
+# 仅在 draw_bold_text_with_bright_colors = true 时使用
+# "None" = 使用普通前景色
+bright_foreground = "None"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 🖱️ 光标颜色 [colors.cursor]
+# ─────────────────────────────────────────────────────────────────────────────
+[colors.cursor]
+# 光标内的文本颜色
+# 可以是十六进制颜色或 "CellForeground"/"CellBackground"
+text = "CellBackground"
+
+# 光标颜色
+cursor = "CellForeground"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 📍 Vi 模式光标颜色 [colors.vi_mode_cursor]
+# ─────────────────────────────────────────────────────────────────────────────
+[colors.vi_mode_cursor]
+# Vi 模式下光标内的文本颜色
+text = "CellBackground"
+
+# Vi 模式下的光标颜色
+cursor = "CellForeground"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 🔍 搜索颜色 [colors.search]
+# ─────────────────────────────────────────────────────────────────────────────
+[colors.search]
+# 搜索匹配项的颜色
+matches = { foreground = "#181818", background = "#ac4242" }
+
+# 当前聚焦的搜索匹配项颜色
+focused_match = { foreground = "#181818", background = "#f4bf75" }
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 💡 提示颜色 [colors.hints]
+# ─────────────────────────────────────────────────────────────────────────────
+[colors.hints]
+# 提示标签第一个字符的颜色
+start = { foreground = "#181818", background = "#f4bf75" }
+
+# 提示标签其余字符的颜色
+end = { foreground = "#181818", background = "#ac4242" }
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 📊 行指示器颜色 [colors.line_indicator]
+# ─────────────────────────────────────────────────────────────────────────────
+[colors.line_indicator]
+# 搜索和 Vi 模式期间显示位置的指示器颜色
+# "None" = 使用相反的主要颜色
+foreground = "None"
+background = "None"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 📋 底部栏颜色 [colors.footer_bar]
+# ─────────────────────────────────────────────────────────────────────────────
+[colors.footer_bar]
+# 底部栏颜色 (用于搜索正则表达式输入、超链接 URI 预览等)
+foreground = "#181818"
+background = "#d8d8d8"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ✨ 选择颜色 [colors.selection]
+# ─────────────────────────────────────────────────────────────────────────────
+[colors.selection]
+# 选中文本的颜色
+text = "CellBackground"
+
+# 选择背景色
+background = "CellForeground"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 🎨 普通颜色 [colors.normal] - ANSI 颜色 0-7
+# ─────────────────────────────────────────────────────────────────────────────
+[colors.normal]
+black   = "#181818"  # 黑色
+red     = "#ac4242"  # 红色
+green   = "#90a959"  # 绿色
+yellow  = "#f4bf75"  # 黄色
+blue    = "#6a9fb5"  # 蓝色
+magenta = "#aa759f"  # 品红色
+cyan    = "#75b5aa"  # 青色
+white   = "#d8d8d8"  # 白色
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ✨ 亮色 [colors.bright] - ANSI 颜色 8-15
+# ─────────────────────────────────────────────────────────────────────────────
+[colors.bright]
+black   = "#6b6b6b"  # 亮黑色 (灰色)
+red     = "#c55555"  # 亮红色
+green   = "#aac474"  # 亮绿色
+yellow  = "#feca88"  # 亮黄色
+blue    = "#82b8c8"  # 亮蓝色
+magenta = "#c28cb8"  # 亮品红色
+cyan    = "#93d3c3"  # 亮青色
+white   = "#f8f8f8"  # 亮白色
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 🌑 暗淡颜色 [colors.dim]
+# 如果未设置，将根据 normal 颜色自动计算
+# ─────────────────────────────────────────────────────────────────────────────
+[colors.dim]
+black   = "#0f0f0f"  # 暗黑色
+red     = "#712b2b"  # 暗红色
+green   = "#5f6f3a"  # 暗绿色
+yellow  = "#a17e4d"  # 暗黄色
+blue    = "#456877"  # 暗蓝色
+magenta = "#704d68"  # 暗品红色
+cyan    = "#4d7770"  # 暗青色
+white   = "#8e8e8e"  # 暗白色
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 🔢 索引颜色 [colors.indexed_colors]
+# 自定义 16-256 的颜色 (ANSI 扩展色)
+# 默认为空数组，Alacritty 会使用内置的 256 色调色板
+# ─────────────────────────────────────────────────────────────────────────────
+# 格式: [[colors.indexed_colors]]
+#       index = <16-256>
+#       color = "#RRGGBB"
+#
+# 示例:
+# [[colors.indexed_colors]]
+# index = 16
+# color = "#ff00ff"
+#
+# [[colors.indexed_colors]]
+# index = 17
+# color = "#00ff00"
+
+
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │                            🔔 [bell] 响铃配置                                 │
+# │                         控制终端响铃的视觉和声音效果                           │
+# └──────────────────────────────────────────────────────────────────────────────┘
+[bell]
+
+# 🎬 动画效果
+# 视觉响铃闪烁屏幕时的动画效果
+# 可选值: "Ease", "EaseOut", "EaseOutSine", "EaseOutQuad", "EaseOutCubic",
+#         "EaseOutQuart", "EaseOutQuint", "EaseOutExpo", "EaseOutCirc", "Linear"
+animation = "Linear"
+
+# ⏱️ 持续时间
+# 视觉响铃闪烁的持续时间（毫秒）
+# 设置为 0 将禁用视觉响铃动画
+duration = 0
+
+# 🎨 颜色
+# 视觉响铃闪烁时的颜色
+color = "#ffffff"
+
+# 🔊 命令
+# 响铃时执行的命令
+# "None" = 不执行任何命令
+# 也可以设置为命令字符串或 { program = "...", args = [...] }
+# 示例: command = { program = "paplay", args = ["/usr/share/sounds/bell.wav"] }
+command = "None"
+
+
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │                          ✂️ [selection] 选择配置                              │
+# │                           控制文本选择的行为                                   │
+# └──────────────────────────────────────────────────────────────────────────────┘
+[selection]
+
+# 🔤 语义分隔符
+# 用于定义"语义词"边界的字符
+# 双击选择时会以这些字符作为分隔符
+semantic_escape_chars = ",│`|:\"' ()[]{}<>\t"
+
+# 📋 保存到剪贴板
+# true = 选中的文本自动复制到主剪贴板 (primary clipboard)
+# false = 需要手动复制
+save_to_clipboard = false
+
+
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │                           ▌ [cursor] 光标配置                                 │
+# │                          控制终端光标的外观和行为                              │
+# └──────────────────────────────────────────────────────────────────────────────┘
+[cursor]
+
+# 🎨 光标样式
+# shape = 光标形状: "Block" (方块), "Underline" (下划线), "Beam" (竖线)
+# blinking = 闪烁行为:
+#   - "Never" = 永不闪烁
+#   - "Off" = 默认关闭闪烁
+#   - "On" = 默认开启闪烁
+#   - "Always" = 始终闪烁
+style = { shape = "Block", blinking = "Off" }
+
+# 📍 Vi 模式光标样式
+# 设置为 "None" 将使用普通光标样式
+# 也可以设置为 { shape = "Block", blinking = "Off" }
+vi_mode_style = "None"
+
+# ⏱️ 闪烁间隔
+# 光标闪烁的间隔时间（毫秒）
+blink_interval = 750
+
+# ⏰ 闪烁超时
+# 光标停止闪烁前的时间（秒）
+# 设置为 0 将禁用超时（永远闪烁）
+blink_timeout = 5
+
+# 🔲 失焦时空心
+# true = 窗口失去焦点时光标显示为空心方块
+# false = 窗口失去焦点时光标保持原样
+unfocused_hollow = true
+
+# 📏 光标粗细
+# 相对于单元格宽度的光标粗细（0.0 到 1.0）
+# 仅对 Underline 和 Beam 形状有效
+thickness = 0.15
+
+
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │                          💻 [terminal] 终端配置                               │
+# │                           控制终端 shell 和行为                               │
+# └──────────────────────────────────────────────────────────────────────────────┘
+[terminal]
+
+# 🐚 Shell 程序
+# 设置 Alacritty 启动时使用的 shell
+# 默认值 (不设置此项时):
+#   - Linux/BSD/macOS: $SHELL 环境变量，如果未设置则使用用户的登录 shell
+#   - Windows: "powershell"
+#
+# ⚠️ 注意: 此项不设置任何值时使用系统默认，下面的注释示例可按需启用
+#
+# 格式1: 简单字符串 (不带参数)
+# shell = "/bin/zsh"
+#
+# 格式2: 带参数的完整配置 (推荐)
+# shell = { program = "/bin/zsh", args = ["-l"] }
+#
+# 常用配置示例 (取消注释以使用):
+# shell = { program = "/bin/bash", args = ["--login"] }           # Bash 登录 shell
+# shell = { program = "/bin/zsh", args = ["-l"] }                 # Zsh 登录 shell
+# shell = { program = "/usr/local/bin/fish", args = ["-l"] }      # Fish 登录 shell
+# shell = { program = "/opt/homebrew/bin/fish", args = ["-l"] }   # Fish (Homebrew ARM)
+# shell = { program = "/usr/bin/tmux", args = ["new-session"] }   # 直接启动 tmux
+# shell = { program = "powershell", args = [] }                   # Windows PowerShell
+
+# 📋 OSC 52 剪贴板控制
+# 控制使用 OSC 52 转义序列写入系统剪贴板的能力
+# "Disabled" = 禁用
+# "OnlyCopy" = 只允许复制 (推荐)
+# "OnlyPaste" = 只允许粘贴
+# "CopyPaste" = 允许复制和粘贴
+osc52 = "OnlyCopy"
+
+
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │                            🖱️ [mouse] 鼠标配置                                │
+# │                            控制鼠标相关行为                                    │
+# └──────────────────────────────────────────────────────────────────────────────┘
+[mouse]
+
+# 🙈 打字时隐藏鼠标
+# true = 打字时临时隐藏鼠标光标
+# false = 鼠标光标始终可见
+hide_when_typing = false
+
+# 🖱️ 鼠标绑定
+# 配置鼠标按钮的行为
+# mouse = 鼠标按钮: "Left", "Right", "Middle", "Back", "Forward", 或数字 (1-255)
+# mods = 修饰键: "Control", "Shift", "Alt", "Command" 等
+# mode = 终端模式: "AppCursor", "AppKeypad", "Search", "Alt", "Vi"
+# action = 动作 (见键盘绑定的动作列表，额外支持 "ExpandSelection")
+#
+# ⚠️ 当应用程序捕获鼠标时，可以使用 Shift 修饰键来抑制鼠标报告
+#
+# 默认鼠标绑定 (显式声明):
+bindings = [
+    # 右键展开选择 (扩展当前选区到鼠标位置)
+    { mouse = "Right", action = "ExpandSelection" },
+    # Ctrl+右键展开选择
+    { mouse = "Right", mods = "Control", action = "ExpandSelection" },
+    # 中键粘贴选择缓冲区 (仅在非 Vi 模式下)
+    { mouse = "Middle", mode = "~Vi", action = "PasteSelection" },
+]
+
+# 📋 其他可用的鼠标绑定示例 (在上方数组中添加):
+# { mouse = "Right", action = "Paste" },                          # 右键粘贴 (类似 Windows)
+# { mouse = "Back", action = "ScrollPageUp" },                    # 后退按钮向上翻页
+# { mouse = "Forward", action = "ScrollPageDown" },               # 前进按钮向下翻页
+# { mouse = 8, action = "ScrollPageUp" },                         # 鼠标按钮 8 向上翻页
+# { mouse = 9, action = "ScrollPageDown" },                       # 鼠标按钮 9 向下翻页
+# { mouse = "Left", mods = "Control", action = "Copy" },          # Ctrl+左键复制
+
+
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │                           💡 [hints] 提示配置                                 │
+# │                    用于在终端中查找文本或超链接并进行操作                       │
+# └──────────────────────────────────────────────────────────────────────────────┘
+[hints]
+
+# 🔤 提示标签字母表
+# 用于生成提示标签的字符
+alphabet = "jfkdls;ahgurieowpq"
+
+# 📌 启用的提示规则
+# 每个提示必须至少有 regex 或 hyperlinks 之一，以及 action 或 command
+#
+# 默认配置: 匹配 URL 并使用系统默认程序打开
+[[hints.enabled]]
+# 🔗 匹配超链接 (OSC 8 转义序列)
+hyperlinks = true
+
+# 📝 正则表达式匹配
+# 匹配各种 URL 协议
+regex = "(ipfs:|ipns:|magnet:|mailto:|gemini://|gopher://|https://|http://|news:|file:|git://|ssh:|ftp://)[^\\u0000-\\u001F\\u007F-\\u009F<>\"\\s{-}\\^⟨⟩`\\\\]+"
+
+# ✂️ 后处理
+# true = 使用启发式方法缩短匹配（去除末尾的标点等）
+post_processing = true
+
+# 📌 持久化
+# true = 选择后提示保持显示
+persist = false
+
+# 🎯 动作 (可选，与 command 二选一或都设置)
+# "Copy" = 复制提示文本到剪贴板
+# "Paste" = 粘贴提示文本到终端或搜索
+# "Select" = 选择提示文本
+# "MoveViModeCursor" = 移动 Vi 模式光标到提示开始位置
+# action = "Copy"
+
+# 🖱️ 鼠标悬停
+# enabled = true 时，按住指定修饰键并悬停在匹配文本上会显示下划线
+# mods = 修饰键，如 "Control", "Shift", "Alt" 等
+mouse = { enabled = true }
+# 也可以指定修饰键: mouse = { enabled = true, mods = "Control" }
+
+# ⌨️ 键盘绑定
+# 启动键盘提示选择的快捷键
+binding = { key = "O", mods = "Control|Shift" }
+
+# 🔧 命令
+# 选择提示后执行的命令
+# Linux/BSD: "xdg-open"
+# macOS: "open"
+# Windows: { program = "cmd", args = ["/c", "start", ""] }
+command = "open"  # macOS 默认
+# 也可以使用完整格式: command = { program = "open", args = [] }
+
+
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │                         ⌨️ [keyboard] 键盘配置                                │
+# │                           配置键盘快捷键绑定                                   │
+# └──────────────────────────────────────────────────────────────────────────────┘
+[keyboard]
+
+# ⌨️ 键盘绑定
+# key = 按键名称 (如 "A", "F1", "Enter") 或扫描码
+# mods = 修饰键: "Control", "Shift", "Alt", "Command", "Option", "Super"
+#        多个修饰键用 | 连接，如 "Control|Shift"
+# mode = 终端模式: "AppCursor", "AppKeypad", "Search", "Alt", "Vi"
+#        前缀 ~ 表示该模式不能激活，如 "~Vi"
+# action = 动作 (见下方列表)
+# chars = 发送的字符串
+# command = 执行的命令
+#
+# 使用 "ReceiveChar" 动作可以取消默认绑定
+# 使用 "None" 动作可以完全禁止任何动作
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 📋 可用动作列表:
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# 🔹 通用动作:
+#   ReceiveChar         - 允许接收字符输入
+#   None                - 无动作
+#   Paste               - 粘贴系统剪贴板内容
+#   Copy                - 复制当前选择到剪贴板
+#   IncreaseFontSize    - 增大字体
+#   DecreaseFontSize    - 减小字体
+#   ResetFontSize       - 重置字体大小
+#   ScrollPageUp        - 向上滚动一页
+#   ScrollPageDown      - 向下滚动一页
+#   ScrollHalfPageUp    - 向上滚动半页
+#   ScrollHalfPageDown  - 向下滚动半页
+#   ScrollLineUp        - 向上滚动一行
+#   ScrollLineDown      - 向下滚动一行
+#   ScrollToTop         - 滚动到顶部
+#   ScrollToBottom      - 滚动到底部
+#   ClearHistory        - 清除历史记录
+#   Hide                - 隐藏窗口
+#   Minimize            - 最小化窗口
+#   Quit                - 退出 Alacritty
+#   ClearLogNotice      - 清除日志通知
+#   SpawnNewInstance    - 启动新实例
+#   CreateNewWindow     - 创建新窗口
+#   ToggleFullscreen    - 切换全屏
+#   ToggleMaximized     - 切换最大化
+#   ClearSelection      - 清除选择
+#   ToggleViMode        - 切换 Vi 模式
+#   SearchForward       - 向前搜索
+#   SearchBackward      - 向后搜索
+#
+# 🔹 Vi 模式动作:
+#   Up, Down, Left, Right           - 移动光标
+#   First, Last                     - 移动到行首/行尾
+#   FirstOccupied                   - 移动到第一个非空单元格
+#   High, Middle, Low               - 移动到屏幕顶部/中间/底部
+#   SemanticLeft, SemanticRight     - 按语义词移动
+#   SemanticLeftEnd, SemanticRightEnd - 移动到语义词末尾
+#   WordLeft, WordRight             - 按空白分隔词移动
+#   WordLeftEnd, WordRightEnd       - 移动到空白分隔词末尾
+#   Bracket                         - 移动到匹配的括号
+#   ParagraphUp, ParagraphDown      - 移动到上/下一段
+#   ToggleNormalSelection           - 切换普通选择
+#   ToggleLineSelection             - 切换行选择
+#   ToggleBlockSelection            - 切换块选择
+#   ToggleSemanticSelection         - 切换语义选择
+#   SearchNext, SearchPrevious      - 跳转到下/上一个搜索匹配
+#   SearchStart, SearchEnd          - 跳转到匹配的开始/结束
+#   Open                            - 打开光标下的 URL
+#   CenterAroundViCursor            - 将屏幕居中到 Vi 光标
+#   InlineSearchForward/Backward    - 行内向前/向后搜索
+#   InlineSearchForwardShort/BackwardShort - 行内搜索（停在字符前）
+#   InlineSearchNext/Previous       - 跳转到下/上一个行内搜索匹配
+#   SemanticSearchForward/Backward  - 语义搜索
+#
+# 🔹 搜索模式动作:
+#   SearchFocusNext     - 聚焦下一个匹配
+#   SearchFocusPrevious - 聚焦上一个匹配
+#   SearchConfirm       - 确认搜索
+#   SearchCancel        - 取消搜索
+#   SearchClear         - 清除搜索正则
+#   SearchDeleteWord    - 删除最后一个词
+#   SearchHistoryPrevious/Next - 搜索历史
+#
+# 🔹 macOS 专用动作:
+#   ToggleSimpleFullscreen  - 切换简单全屏
+#   HideOtherApplications   - 隐藏其他应用
+#   CreateNewTab            - 创建新标签页
+#   SelectNextTab/PreviousTab - 选择下/上一个标签页
+#   SelectTab1-9            - 选择第 1-9 个标签页
+#   SelectLastTab           - 选择最后一个标签页
+#
+# 🔹 Linux/BSD 专用动作:
+#   CopySelection       - 从选择缓冲区复制
+#   PasteSelection      - 从选择缓冲区粘贴
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 📋 默认键盘绑定 (所有平台)
+# ─────────────────────────────────────────────────────────────────────────────
+bindings = [
+    # 🔹 基础操作
+    { key = "Paste", action = "Paste" },                              # 粘贴键 -> 粘贴
+    { key = "Copy", action = "Copy" },                                # 复制键 -> 复制
+    { key = "L", mods = "Control", action = "ClearLogNotice" },       # Ctrl+L -> 清除日志通知
+    { key = "Paste", mode = "Vi|Search", action = "Paste" },          # Vi/搜索模式下粘贴
+    { key = "L", mods = "Control", mode = "~Vi|~Search", chars = "\u000c" },  # Ctrl+L -> 清屏字符
+
+    # 🔹 滚动操作
+    { key = "PageUp", mods = "Shift", mode = "~Alt", action = "ScrollPageUp" },      # Shift+PageUp -> 向上翻页
+    { key = "PageDown", mods = "Shift", mode = "~Alt", action = "ScrollPageDown" },  # Shift+PageDown -> 向下翻页
+    { key = "Home", mods = "Shift", mode = "~Alt", action = "ScrollToTop" },         # Shift+Home -> 滚动到顶部
+    { key = "End", mods = "Shift", mode = "~Alt", action = "ScrollToBottom" },       # Shift+End -> 滚动到底部
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 🎯 Vi 模式绑定
+    # ─────────────────────────────────────────────────────────────────────────
+    { key = "Space", mods = "Shift|Control", mode = "~Search", action = "ToggleViMode" },     # Ctrl+Shift+Space -> 切换 Vi 模式
+    { key = "Space", mods = "Shift|Control", mode = "Vi|~Search", action = "ScrollToBottom" }, # Vi 模式下 -> 滚动到底部
+    { key = "Escape", mode = "Vi|~Search", action = "ClearSelection" },  # Esc -> 清除选择
+    { key = "I", mode = "Vi|~Search", action = "ToggleViMode" },         # i -> 退出 Vi 模式
+    { key = "I", mode = "Vi|~Search", action = "ScrollToBottom" },       # i -> 同时滚动到底部
+    { key = "C", mods = "Control", mode = "Vi|~Search", action = "ToggleViMode" },  # Ctrl+C -> 退出 Vi 模式
+
+    # Vi 模式滚动
+    { key = "Y", mods = "Control", mode = "Vi|~Search", action = "ScrollLineUp" },    # Ctrl+Y -> 向上滚动一行
+    { key = "E", mods = "Control", mode = "Vi|~Search", action = "ScrollLineDown" },  # Ctrl+E -> 向下滚动一行
+    { key = "G", mode = "Vi|~Search", action = "ScrollToTop" },                       # g -> 滚动到顶部
+    { key = "G", mods = "Shift", mode = "Vi|~Search", action = "ScrollToBottom" },    # G -> 滚动到底部
+    { key = "B", mods = "Control", mode = "Vi|~Search", action = "ScrollPageUp" },    # Ctrl+B -> 向上翻页
+    { key = "F", mods = "Control", mode = "Vi|~Search", action = "ScrollPageDown" },  # Ctrl+F -> 向下翻页
+    { key = "U", mods = "Control", mode = "Vi|~Search", action = "ScrollHalfPageUp" },   # Ctrl+U -> 向上翻半页
+    { key = "D", mods = "Control", mode = "Vi|~Search", action = "ScrollHalfPageDown" }, # Ctrl+D -> 向下翻半页
+
+    # Vi 模式复制
+    { key = "Y", mode = "Vi|~Search", action = "Copy" },                 # y -> 复制选中内容
+    { key = "Y", mode = "Vi|~Search", action = "ClearSelection" },       # y -> 复制后清除选择
+    { key = "Copy", mode = "Vi|~Search", action = "ClearSelection" },    # 系统复制键后清除选择
+
+    # Shift+Y -> 复制到行尾 (类似 Vim 的 Y 命令)
+    { key = "Y", mods = "Shift", mode = "Vi|~Search", action = "ToggleNormalSelection" },  # Y -> 开始选择
+    { key = "Y", mods = "Shift", mode = "Vi|~Search", action = "Last" },                   # Y -> 移动到行尾
+    { key = "Y", mods = "Shift", mode = "Vi|~Search", action = "Copy" },                   # Y -> 复制
+    { key = "Y", mods = "Shift", mode = "Vi|~Search", action = "ClearSelection" },         # Y -> 清除选择
+
+    # Vi 模式选择
+    { key = "V", mode = "Vi|~Search", action = "ToggleNormalSelection" },              # v -> 普通选择
+    { key = "V", mods = "Shift", mode = "Vi|~Search", action = "ToggleLineSelection" }, # V -> 行选择
+    { key = "V", mods = "Control", mode = "Vi|~Search", action = "ToggleBlockSelection" }, # Ctrl+V -> 块选择
+    { key = "V", mods = "Alt", mode = "Vi|~Search", action = "ToggleSemanticSelection" },  # Alt+V -> 语义选择
+
+    # Vi 模式其他操作
+    { key = "Return", mode = "Vi|~Search", action = "Open" },            # Enter -> 打开 URL
+    { key = "Z", mode = "Vi|~Search", action = "CenterAroundViCursor" }, # z -> 居中光标
+
+    # Vi 模式行内搜索
+    { key = "F", mode = "Vi|~Search", action = "InlineSearchForward" },              # f -> 向前搜索字符
+    { key = "F", mods = "Shift", mode = "Vi|~Search", action = "InlineSearchBackward" }, # F -> 向后搜索字符
+    { key = "T", mode = "Vi|~Search", action = "InlineSearchForwardShort" },         # t -> 向前搜索（停在字符前）
+    { key = "T", mods = "Shift", mode = "Vi|~Search", action = "InlineSearchBackwardShort" }, # T -> 向后搜索（停在字符前）
+    { key = ";", mode = "Vi|~Search", action = "InlineSearchNext" },                 # ; -> 下一个行内匹配
+    { key = ",", mode = "Vi|~Search", action = "InlineSearchPrevious" },             # , -> 上一个行内匹配
+
+    # Vi 模式语义搜索
+    { key = "*", mods = "Shift", mode = "Vi|~Search", action = "SemanticSearchForward" },  # * -> 向前语义搜索
+    { key = "#", mods = "Shift", mode = "Vi|~Search", action = "SemanticSearchBackward" }, # # -> 向后语义搜索
+
+    # Vi 模式移动
+    { key = "K", mode = "Vi|~Search", action = "Up" },                    # k -> 向上
+    { key = "J", mode = "Vi|~Search", action = "Down" },                  # j -> 向下
+    { key = "H", mode = "Vi|~Search", action = "Left" },                  # h -> 向左
+    { key = "L", mode = "Vi|~Search", action = "Right" },                 # l -> 向右
+    { key = "ArrowUp", mode = "Vi|~Search", action = "Up" },              # ↑ -> 向上
+    { key = "ArrowDown", mode = "Vi|~Search", action = "Down" },          # ↓ -> 向下
+    { key = "ArrowLeft", mode = "Vi|~Search", action = "Left" },          # ← -> 向左
+    { key = "ArrowRight", mode = "Vi|~Search", action = "Right" },        # → -> 向右
+    { key = "0", mode = "Vi|~Search", action = "First" },                 # 0 -> 行首
+    { key = "$", mods = "Shift", mode = "Vi|~Search", action = "Last" },  # $ -> 行尾
+    { key = "Home", mode = "Vi|~Search", action = "First" },              # Home -> 行首
+    { key = "End", mode = "Vi|~Search", action = "Last" },                # End -> 行尾
+    { key = "^", mods = "Shift", mode = "Vi|~Search", action = "FirstOccupied" }, # ^ -> 第一个非空字符
+    { key = "H", mods = "Shift", mode = "Vi|~Search", action = "High" },   # H -> 屏幕顶部
+    { key = "M", mods = "Shift", mode = "Vi|~Search", action = "Middle" }, # M -> 屏幕中间
+    { key = "L", mods = "Shift", mode = "Vi|~Search", action = "Low" },    # L -> 屏幕底部
+
+    # Vi 模式词移动
+    { key = "B", mode = "Vi|~Search", action = "SemanticLeft" },          # b -> 上一个语义词
+    { key = "W", mode = "Vi|~Search", action = "SemanticRight" },         # w -> 下一个语义词
+    { key = "E", mode = "Vi|~Search", action = "SemanticRightEnd" },      # e -> 语义词末尾
+    { key = "B", mods = "Shift", mode = "Vi|~Search", action = "WordLeft" },      # B -> 上一个词
+    { key = "W", mods = "Shift", mode = "Vi|~Search", action = "WordRight" },     # W -> 下一个词
+    { key = "E", mods = "Shift", mode = "Vi|~Search", action = "WordRightEnd" },  # E -> 词末尾
+
+    # Vi 模式其他移动
+    { key = "%", mods = "Shift", mode = "Vi|~Search", action = "Bracket" },       # % -> 匹配括号
+    { key = "{", mods = "Shift", mode = "Vi|~Search", action = "ParagraphUp" },   # { -> 上一段
+    { key = "}", mods = "Shift", mode = "Vi|~Search", action = "ParagraphDown" }, # } -> 下一段
+
+    # Vi 模式搜索
+    { key = "/", mode = "Vi|~Search", action = "SearchForward" },         # / -> 向前搜索
+    { key = "?", mods = "Shift", mode = "Vi|~Search", action = "SearchBackward" }, # ? -> 向后搜索
+    { key = "N", mode = "Vi|~Search", action = "SearchNext" },            # n -> 下一个匹配
+    { key = "N", mods = "Shift", mode = "Vi|~Search", action = "SearchPrevious" }, # N -> 上一个匹配
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 🔍 搜索模式绑定
+    # ─────────────────────────────────────────────────────────────────────────
+    { key = "Return", mode = "Search|Vi", action = "SearchConfirm" },     # Enter -> 确认搜索
+    { key = "Escape", mode = "Search", action = "SearchCancel" },         # Esc -> 取消搜索
+    { key = "C", mods = "Control", mode = "Search", action = "SearchCancel" },    # Ctrl+C -> 取消搜索
+    { key = "U", mods = "Control", mode = "Search", action = "SearchClear" },     # Ctrl+U -> 清除搜索
+    { key = "W", mods = "Control", mode = "Search", action = "SearchDeleteWord" }, # Ctrl+W -> 删除词
+    { key = "P", mods = "Control", mode = "Search", action = "SearchHistoryPrevious" }, # Ctrl+P -> 上一个历史
+    { key = "N", mods = "Control", mode = "Search", action = "SearchHistoryNext" },     # Ctrl+N -> 下一个历史
+    { key = "ArrowUp", mode = "Search", action = "SearchHistoryPrevious" },   # ↑ -> 上一个历史
+    { key = "ArrowDown", mode = "Search", action = "SearchHistoryNext" },     # ↓ -> 下一个历史
+    { key = "Return", mode = "Search|~Vi", action = "SearchFocusNext" },      # Enter -> 聚焦下一个匹配
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 🍎 macOS 专用绑定
+    # ─────────────────────────────────────────────────────────────────────────
+    { key = "K", mods = "Command", mode = "~Vi|~Search", chars = "\u000c" },  # Cmd+K -> 清屏
+    { key = "K", mods = "Command", mode = "~Vi|~Search", action = "ClearHistory" }, # Cmd+K -> 清除历史
+    { key = "0", mods = "Command", action = "ResetFontSize" },            # Cmd+0 -> 重置字体大小
+    { key = "=", mods = "Command", action = "IncreaseFontSize" },         # Cmd+= -> 增大字体
+    { key = "+", mods = "Command", action = "IncreaseFontSize" },         # Cmd++ -> 增大字体
+    { key = "NumpadAdd", mods = "Command", action = "IncreaseFontSize" }, # Cmd+小键盘+ -> 增大字体
+    { key = "-", mods = "Command", action = "DecreaseFontSize" },         # Cmd+- -> 减小字体
+    { key = "NumpadSubtract", mods = "Command", action = "DecreaseFontSize" }, # Cmd+小键盘- -> 减小字体
+    { key = "V", mods = "Command", mode = "~Vi", action = "Paste" },      # Cmd+V -> 粘贴
+    { key = "V", mods = "Command", mode = "Vi|Search", action = "Paste" }, # Vi/搜索模式 Cmd+V -> 粘贴
+    { key = "C", mods = "Command", action = "Copy" },                     # Cmd+C -> 复制
+    { key = "C", mods = "Command", mode = "Vi|~Search", action = "ClearSelection" }, # Vi 模式 Cmd+C -> 清除选择
+    { key = "H", mods = "Command", action = "Hide" },                     # Cmd+H -> 隐藏窗口
+    { key = "H", mods = "Command|Alt", action = "HideOtherApplications" }, # Cmd+Alt+H -> 隐藏其他应用
+    { key = "M", mods = "Command", action = "Minimize" },                 # Cmd+M -> 最小化
+    { key = "Q", mods = "Command", action = "Quit" },                     # Cmd+Q -> 退出
+    { key = "W", mods = "Command", action = "Quit" },                     # Cmd+W -> 退出
+    { key = "N", mods = "Command", action = "CreateNewWindow" },          # Cmd+N -> 新窗口
+    { key = "T", mods = "Command", action = "CreateNewTab" },             # Cmd+T -> 新标签页
+    { key = "F", mods = "Command|Control", action = "ToggleFullscreen" }, # Cmd+Ctrl+F -> 切换全屏
+    { key = "F", mods = "Command", mode = "~Search", action = "SearchForward" },  # Cmd+F -> 向前搜索
+    { key = "B", mods = "Command", mode = "~Search", action = "SearchBackward" }, # Cmd+B -> 向后搜索
+    { key = "]", mods = "Command|Shift", action = "SelectNextTab" },      # Cmd+Shift+] -> 下一个标签页
+    { key = "[", mods = "Command|Shift", action = "SelectPreviousTab" },  # Cmd+Shift+[ -> 上一个标签页
+    { key = "Tab", mods = "Command", action = "SelectNextTab" },          # Cmd+Tab -> 下一个标签页
+    { key = "Tab", mods = "Command|Shift", action = "SelectPreviousTab" }, # Cmd+Shift+Tab -> 上一个标签页
+    { key = "1", mods = "Command", action = "SelectTab1" },               # Cmd+1 -> 第1个标签页
+    { key = "2", mods = "Command", action = "SelectTab2" },               # Cmd+2 -> 第2个标签页
+    { key = "3", mods = "Command", action = "SelectTab3" },               # Cmd+3 -> 第3个标签页
+    { key = "4", mods = "Command", action = "SelectTab4" },               # Cmd+4 -> 第4个标签页
+    { key = "5", mods = "Command", action = "SelectTab5" },               # Cmd+5 -> 第5个标签页
+    { key = "6", mods = "Command", action = "SelectTab6" },               # Cmd+6 -> 第6个标签页
+    { key = "7", mods = "Command", action = "SelectTab7" },               # Cmd+7 -> 第7个标签页
+    { key = "8", mods = "Command", action = "SelectTab8" },               # Cmd+8 -> 第8个标签页
+    { key = "9", mods = "Command", action = "SelectLastTab" },            # Cmd+9 -> 最后一个标签页
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 🐧 Linux/BSD/Windows 专用绑定 (取消注释以在非 macOS 系统上使用)
+    # ─────────────────────────────────────────────────────────────────────────
+    # { key = "V", mods = "Control|Shift", mode = "~Vi", action = "Paste" },        # Ctrl+Shift+V -> 粘贴
+    # { key = "V", mods = "Control|Shift", mode = "Vi|Search", action = "Paste" },  # Vi/搜索模式粘贴
+    # { key = "C", mods = "Control|Shift", action = "Copy" },                       # Ctrl+Shift+C -> 复制
+    # { key = "F", mods = "Control|Shift", mode = "~Search", action = "SearchForward" },  # Ctrl+Shift+F -> 搜索
+    # { key = "B", mods = "Control|Shift", mode = "~Search", action = "SearchBackward" }, # Ctrl+Shift+B -> 反向搜索
+    # { key = "C", mods = "Control|Shift", mode = "Vi|~Search", action = "ClearSelection" }, # 清除选择
+    # { key = "Insert", mods = "Shift", action = "PasteSelection" },                # Shift+Insert -> 粘贴选择
+    # { key = "0", mods = "Control", action = "ResetFontSize" },                    # Ctrl+0 -> 重置字体
+    # { key = "=", mods = "Control", action = "IncreaseFontSize" },                 # Ctrl+= -> 增大字体
+    # { key = "+", mods = "Control", action = "IncreaseFontSize" },                 # Ctrl++ -> 增大字体
+    # { key = "NumpadAdd", mods = "Control", action = "IncreaseFontSize" },         # 小键盘+ -> 增大字体
+    # { key = "-", mods = "Control", action = "DecreaseFontSize" },                 # Ctrl+- -> 减小字体
+    # { key = "NumpadSubtract", mods = "Control", action = "DecreaseFontSize" },    # 小键盘- -> 减小字体
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 🪟 Windows 专用绑定 (取消注释以在 Windows 上使用)
+    # ─────────────────────────────────────────────────────────────────────────
+    # { key = "Return", mods = "Alt", action = "ToggleFullscreen" },  # Alt+Enter -> 切换全屏
+]
+
+
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │                           🐛 [debug] 调试配置                                 │
+# │                     用于排查问题的调试选项（可能随时更改）                       │
+# └──────────────────────────────────────────────────────────────────────────────┘
+[debug]
+
+# ⏱️ 渲染计时器
+# true = 显示每帧的渲染时间
+render_timer = false
+
+# 📝 持久化日志
+# true = 退出 Alacritty 后保留日志文件
+persistent_logging = false
+
+# 📊 日志级别
+# 可选值: "Off", "Error", "Warn", "Info", "Debug", "Trace"
+log_level = "Warn"
+
+# 🎨 渲染器
+# 强制使用特定的渲染器
+# "glsl3" = OpenGL 3.3
+# "gles2" = OpenGL ES 2.0
+# "gles2pure" = 纯 OpenGL ES 2.0
+# "None" = 自动选择最佳渲染器
+renderer = "None"
+
+# 📋 打印事件
+# true = 记录所有接收到的窗口事件
+print_events = false
+
+# 🔦 高亮损坏区域
+# true = 高亮显示窗口损坏信息（用于调试渲染问题）
+highlight_damage = false
+
+# 🔌 优先使用 EGL
+# true = 如果平台支持，优先使用 EGL 作为显示 API
+# 注意: 在 Linux/BSD 上使用 EGL 可能导致透明效果失效
+prefer_egl = false
+
+
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║                          🎨 附加配置示例                                       ║
+# ║                    以下是一些常用的自定义配置示例                               ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 🎨 流行主题配置示例 (取消注释以使用)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# 📦 Dracula 主题
+# [colors.primary]
+# foreground = "#f8f8f2"
+# background = "#282a36"
+# [colors.normal]
+# black   = "#000000"
+# red     = "#ff5555"
+# green   = "#50fa7b"
+# yellow  = "#f1fa8c"
+# blue    = "#bd93f9"
+# magenta = "#ff79c6"
+# cyan    = "#8be9fd"
+# white   = "#bfbfbf"
+# [colors.bright]
+# black   = "#4d4d4d"
+# red     = "#ff6e67"
+# green   = "#5af78e"
+# yellow  = "#f4f99d"
+# blue    = "#caa9fa"
+# magenta = "#ff92d0"
+# cyan    = "#9aedfe"
+# white   = "#e6e6e6"
+
+# 📦 Nord 主题
+# [colors.primary]
+# foreground = "#d8dee9"
+# background = "#2e3440"
+# [colors.normal]
+# black   = "#3b4252"
+# red     = "#bf616a"
+# green   = "#a3be8c"
+# yellow  = "#ebcb8b"
+# blue    = "#81a1c1"
+# magenta = "#b48ead"
+# cyan    = "#88c0d0"
+# white   = "#e5e9f0"
+# [colors.bright]
+# black   = "#4c566a"
+# red     = "#bf616a"
+# green   = "#a3be8c"
+# yellow  = "#ebcb8b"
+# blue    = "#81a1c1"
+# magenta = "#b48ead"
+# cyan    = "#8fbcbb"
+# white   = "#eceff4"
+
+# 📦 Gruvbox Dark 主题
+# [colors.primary]
+# foreground = "#ebdbb2"
+# background = "#282828"
+# [colors.normal]
+# black   = "#282828"
+# red     = "#cc241d"
+# green   = "#98971a"
+# yellow  = "#d79921"
+# blue    = "#458588"
+# magenta = "#b16286"
+# cyan    = "#689d6a"
+# white   = "#a89984"
+# [colors.bright]
+# black   = "#928374"
+# red     = "#fb4934"
+# green   = "#b8bb26"
+# yellow  = "#fabd2f"
+# blue    = "#83a598"
+# magenta = "#d3869b"
+# cyan    = "#8ec07c"
+# white   = "#ebdbb2"
+
+# 📦 One Dark 主题
+# [colors.primary]
+# foreground = "#abb2bf"
+# background = "#282c34"
+# [colors.normal]
+# black   = "#282c34"
+# red     = "#e06c75"
+# green   = "#98c379"
+# yellow  = "#e5c07b"
+# blue    = "#61afef"
+# magenta = "#c678dd"
+# cyan    = "#56b6c2"
+# white   = "#abb2bf"
+# [colors.bright]
+# black   = "#5c6370"
+# red     = "#e06c75"
+# green   = "#98c379"
+# yellow  = "#e5c07b"
+# blue    = "#61afef"
+# magenta = "#c678dd"
+# cyan    = "#56b6c2"
+# white   = "#ffffff"
+
+# 📦 Tokyo Night 主题
+# [colors.primary]
+# foreground = "#a9b1d6"
+# background = "#1a1b26"
+# [colors.normal]
+# black   = "#32344a"
+# red     = "#f7768e"
+# green   = "#9ece6a"
+# yellow  = "#e0af68"
+# blue    = "#7aa2f7"
+# magenta = "#ad8ee6"
+# cyan    = "#449dab"
+# white   = "#787c99"
+# [colors.bright]
+# black   = "#444b6a"
+# red     = "#ff7a93"
+# green   = "#b9f27c"
+# yellow  = "#ff9e64"
+# blue    = "#7da6ff"
+# magenta = "#bb9af7"
+# cyan    = "#0db9d7"
+# white   = "#acb0d0"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 🔤 推荐字体配置 (取消注释并修改以使用)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# 📦 JetBrains Mono (推荐编程字体)
+# [font]
+# normal = { family = "JetBrains Mono", style = "Regular" }
+# bold = { family = "JetBrains Mono", style = "Bold" }
+# italic = { family = "JetBrains Mono", style = "Italic" }
+# bold_italic = { family = "JetBrains Mono", style = "Bold Italic" }
+# size = 13.0
+
+# 📦 Fira Code (支持连字)
+# [font]
+# normal = { family = "Fira Code", style = "Regular" }
+# bold = { family = "Fira Code", style = "Bold" }
+# italic = { family = "Fira Code", style = "Light" }
+# size = 12.0
+
+# 📦 Source Code Pro
+# [font]
+# normal = { family = "Source Code Pro", style = "Regular" }
+# bold = { family = "Source Code Pro", style = "Bold" }
+# italic = { family = "Source Code Pro", style = "Italic" }
+# size = 12.0
+
+# 📦 Hack
+# [font]
+# normal = { family = "Hack", style = "Regular" }
+# bold = { family = "Hack", style = "Bold" }
+# italic = { family = "Hack", style = "Italic" }
+# size = 12.0
+
+# 📦 Cascadia Code (Microsoft 出品，支持连字)
+# [font]
+# normal = { family = "Cascadia Code", style = "Regular" }
+# bold = { family = "Cascadia Code", style = "Bold" }
+# italic = { family = "Cascadia Code", style = "Italic" }
+# size = 12.0
+
+# 📦 Nerd Font 版本 (包含图标)
+# [font]
+# normal = { family = "JetBrainsMono Nerd Font", style = "Regular" }
+# bold = { family = "JetBrainsMono Nerd Font", style = "Bold" }
+# italic = { family = "JetBrainsMono Nerd Font", style = "Italic" }
+# size = 13.0
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 🖱️ 自定义鼠标绑定示例
+# ─────────────────────────────────────────────────────────────────────────────
+# [mouse]
+# bindings = [
+#     # 右键点击粘贴 (类似 Windows 终端行为)
+#     { mouse = "Right", action = "Paste" },
+#     # Ctrl+右键展开选择
+#     { mouse = "Right", mods = "Control", action = "ExpandSelection" },
+#     # 中键粘贴选择缓冲区 (非 Vi 模式)
+#     { mouse = "Middle", mode = "~Vi", action = "PasteSelection" },
+# ]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 💡 自定义提示规则示例
+# ─────────────────────────────────────────────────────────────────────────────
+# [[hints.enabled]]
+# # 匹配 IP 地址
+# regex = "\\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\b"
+# hyperlinks = false
+# post_processing = false
+# persist = false
+# action = "Copy"
+# binding = { key = "I", mods = "Control|Shift" }
+# mouse = { enabled = true, mods = "Control" }
+
+# [[hints.enabled]]
+# # 匹配文件路径
+# regex = "(?:/[\\w.-]+)+|(?:[a-zA-Z]:\\\\[\\w.-\\\\]+)"
+# hyperlinks = false
+# post_processing = true
+# persist = false
+# action = "Copy"
+# binding = { key = "P", mods = "Control|Shift" }
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ⌨️ 自定义快捷键示例
+# ─────────────────────────────────────────────────────────────────────────────
+# 在 [keyboard] 的 bindings 数组中添加:
+#
+# # 快速打开新窗口
+# { key = "N", mods = "Control|Shift", action = "SpawnNewInstance" },
+#
+# # 快速切换全屏
+# { key = "F11", action = "ToggleFullscreen" },
+#
+# # 清除屏幕和历史
+# { key = "K", mods = "Control|Shift", action = "ClearHistory" },
+#
+# # 发送特定字符序列
+# { key = "F12", chars = "echo 'Hello World'\n" },
+#
+# # 执行外部命令
+# { key = "O", mods = "Control|Alt", command = { program = "open", args = ["-a", "Finder", "."] } },
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 🌍 环境变量示例
+# ─────────────────────────────────────────────────────────────────────────────
+# [env]
+# # 设置语言环境
+# LANG = "en_US.UTF-8"
+# LC_ALL = "en_US.UTF-8"
+#
+# # 设置编辑器
+# EDITOR = "nvim"
+# VISUAL = "nvim"
+#
+# # 设置 PATH (追加)
+# # PATH = "/usr/local/bin:${PATH}"
+#
+# # 设置终端类型
+# TERM = "alacritty"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 🪟 窗口配置预设示例
+# ─────────────────────────────────────────────────────────────────────────────
+# 
+# 📦 简洁模式 (无边框 + 半透明)
+# [window]
+# decorations = "None"
+# opacity = 0.85
+# blur = true
+# padding = { x = 10, y = 10 }
+# dynamic_padding = true
+#
+# 📦 程序员模式 (最大化 + 置顶)
+# [window]
+# startup_mode = "Maximized"
+# level = "AlwaysOnTop"
+# dynamic_title = true
+#
+# 📦 macOS 原生模式
+# [window]
+# decorations = "Transparent"
+# option_as_alt = "Both"
+# blur = true
+# opacity = 0.92
+#
+# 📦 固定窗口大小
+# [window]
+# dimensions = { columns = 120, lines = 40 }
+# position = { x = 100, y = 100 }
+# resize_increments = true
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 📜 滚动配置预设示例
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# 📦 大历史缓冲 (适合日志查看)
+# [scrolling]
+# history = 100000
+# multiplier = 5
+#
+# 📦 禁用滚动 (适合 tmux 用户)
+# [scrolling]
+# history = 0
+# multiplier = 3
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 🔔 响铃配置预设示例
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# 📦 视觉响铃 (屏幕闪烁)
+# [bell]
+# animation = "EaseOutExpo"
+# duration = 100
+# color = "#ff6600"
+#
+# 📦 声音响铃 (macOS)
+# [bell]
+# duration = 0
+# command = { program = "afplay", args = ["/System/Library/Sounds/Ping.aiff"] }
+#
+# 📦 声音响铃 (Linux)
+# [bell]
+# duration = 0
+# command = { program = "paplay", args = ["/usr/share/sounds/freedesktop/stereo/bell.oga"] }
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ▌光标配置预设示例
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# 📦 下划线光标 (不闪烁)
+# [cursor]
+# style = { shape = "Underline", blinking = "Never" }
+# thickness = 0.2
+# unfocused_hollow = true
+#
+# 📦 竖线光标 (始终闪烁)
+# [cursor]
+# style = { shape = "Beam", blinking = "Always" }
+# blink_interval = 500
+# blink_timeout = 0
+# thickness = 0.1
+#
+# 📦 方块光标 (快速闪烁)
+# [cursor]
+# style = { shape = "Block", blinking = "On" }
+# blink_interval = 400
+# blink_timeout = 10
+# vi_mode_style = { shape = "Block", blinking = "Never" }
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 📚 更多资源
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# 🔗 官方文档: https://alacritty.org/config-alacritty.html
+# 🔗 默认绑定: https://alacritty.org/config-alacritty-bindings.html
+# 🔗 GitHub: https://github.com/alacritty/alacritty
+# 🔗 主题集合: https://github.com/alacritty/alacritty-theme
+#
+# 💡 提示:
+#   - 使用 `alacritty --print-events` 调试按键事件
+#   - 使用 `alacritty -vvv` 启用详细日志
+#   - 使用 `alacritty msg config -w 0 <config>` 动态修改配置
+#
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║                          📋 配置选项速查表                                     ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+#
+# ┌────────────────────────────────────────────────────────────────────────────────┐
+# │ 📦 所有配置表 (Tables) 一览                                                     │
+# ├────────────────────────────────────────────────────────────────────────────────┤
+# │ [general]           - 通用配置 (导入、工作目录、实时重载、IPC)                   │
+# │ [env]               - 环境变量                                                  │
+# │ [window]            - 窗口配置 (尺寸、位置、装饰、透明度、模糊)                   │
+# │ [scrolling]         - 滚动配置 (历史行数、滚动倍数)                              │
+# │ [font]              - 字体配置 (字体族、大小、偏移)                              │
+# │ [colors]            - 颜色配置 (主题、ANSI颜色)                                  │
+# │ [colors.primary]    - 主要颜色 (前景、背景)                                     │
+# │ [colors.cursor]     - 光标颜色                                                  │
+# │ [colors.vi_mode_cursor] - Vi模式光标颜色                                        │
+# │ [colors.search]     - 搜索颜色                                                  │
+# │ [colors.hints]      - 提示颜色                                                  │
+# │ [colors.line_indicator] - 行指示器颜色                                          │
+# │ [colors.footer_bar] - 底部栏颜色                                                │
+# │ [colors.selection]  - 选择颜色                                                  │
+# │ [colors.normal]     - 普通ANSI颜色 (0-7)                                        │
+# │ [colors.bright]     - 亮色ANSI颜色 (8-15)                                       │
+# │ [colors.dim]        - 暗淡颜色                                                  │
+# │ [bell]              - 响铃配置 (动画、持续时间、颜色、命令)                       │
+# │ [selection]         - 选择配置 (分隔符、剪贴板)                                  │
+# │ [cursor]            - 光标配置 (形状、闪烁、粗细)                                │
+# │ [terminal]          - 终端配置 (shell、OSC52)                                   │
+# │ [mouse]             - 鼠标配置 (隐藏、绑定)                                     │
+# │ [hints]             - 提示配置 (字母表、规则)                                    │
+# │ [[hints.enabled]]   - 启用的提示规则 (数组)                                     │
+# │ [keyboard]          - 键盘配置 (快捷键绑定)                                     │
+# │ [debug]             - 调试配置 (渲染计时、日志级别)                              │
+# └────────────────────────────────────────────────────────────────────────────────┘
+#
+# ┌────────────────────────────────────────────────────────────────────────────────┐
+# │ ⌨️ 修饰键 (Modifiers) 说明                                                      │
+# ├────────────────────────────────────────────────────────────────────────────────┤
+# │ "Control"  - Ctrl 键                                                           │
+# │ "Shift"    - Shift 键                                                          │
+# │ "Alt"      - Alt 键 (Windows/Linux) / Option 键 (macOS)                        │
+# │ "Command"  - Command 键 (仅 macOS)                                             │
+# │ "Super"    - Super/Windows 键                                                  │
+# │ "Option"   - Option 键 (仅 macOS，与 Alt 相同)                                 │
+# │                                                                                │
+# │ 多个修饰键使用 | 连接: "Control|Shift", "Command|Alt"                          │
+# └────────────────────────────────────────────────────────────────────────────────┘
+#
+# ┌────────────────────────────────────────────────────────────────────────────────┐
+# │ 🎯 终端模式 (Modes) 说明                                                        │
+# ├────────────────────────────────────────────────────────────────────────────────┤
+# │ "AppCursor"   - 应用光标模式 (DECCKM)                                          │
+# │ "AppKeypad"   - 应用小键盘模式 (DECPNM/DECPAM)                                 │
+# │ "Search"      - 搜索模式                                                        │
+# │ "Alt"         - Alt 屏幕激活                                                    │
+# │ "Vi"          - Vi 模式激活                                                     │
+# │                                                                                │
+# │ 前缀 ~ 表示该模式不能激活: "~Vi" = 非 Vi 模式                                   │
+# │ 多个模式使用 | 连接: "Vi|~Search" = Vi 模式且非搜索模式                         │
+# └────────────────────────────────────────────────────────────────────────────────┘
+#
+# ┌────────────────────────────────────────────────────────────────────────────────┐
+# │ 🎨 颜色值格式说明                                                               │
+# ├────────────────────────────────────────────────────────────────────────────────┤
+# │ 十六进制格式: "#RRGGBB" (如 "#ff0000" = 红色)                                  │
+# │ 特殊值:                                                                         │
+# │   - "CellForeground" = 使用单元格的前景色                                       │
+# │   - "CellBackground" = 使用单元格的背景色                                       │
+# │   - "None" = 不设置/使用默认值                                                  │
+# └────────────────────────────────────────────────────────────────────────────────┘
+#
+# ┌────────────────────────────────────────────────────────────────────────────────┐
+# │ 🔑 常用特殊按键名称                                                             │
+# ├────────────────────────────────────────────────────────────────────────────────┤
+# │ 字母/数字: "A"-"Z", "0"-"9"                                                    │
+# │ 功能键: "F1"-"F35"                                                              │
+# │ 方向键: "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"                      │
+# │ 编辑键: "Home", "End", "PageUp", "PageDown", "Insert", "Delete"                │
+# │ 特殊键: "Enter", "Return", "Space", "Tab", "Escape", "Backspace"               │
+# │ 小键盘: "Numpad0"-"Numpad9", "NumpadAdd", "NumpadSubtract",                    │
+# │         "NumpadMultiply", "NumpadDivide", "NumpadEnter", "NumpadDecimal"       │
+# │ 系统键: "Copy", "Paste", "Cut"                                                  │
+# └────────────────────────────────────────────────────────────────────────────────┘
