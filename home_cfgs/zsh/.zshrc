@@ -7,7 +7,8 @@ else
   real_path=$(realpath ~/.config/zsh)
 fi
 os_type=$(uname)
-proxy_env="ALL_PROXY=socks5://127.0.0.1:10808"
+proxy_all=(ALL_PROXY=socks5://127.0.0.1:10808)
+proxy_http=(HTTP_PROXY=http://127.0.0.1:10808 HTTPS_PROXY=https://127.0.0.1:10808)
 
 ### 加载通用的配置
 source "$real_path/config_common.zsh"
