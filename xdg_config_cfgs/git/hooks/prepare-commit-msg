@@ -1,6 +1,13 @@
 # .git/hooks/prepare-commit-msg
 #!/bin/sh
 
-SOB="Signed-off-by: $(git config user.name) <$(git config user.email)>"
+name="$(git config user.name)"
+email="$(git config user.email)"
 
-grep -q "^$SOB" "$1" || echo "\n$SOB" >> "$1"
+# 中文注释：如果用户名或邮箱为空，则不追加，避免生成无效签名行
+[ -n "$name" ] && [ -n "$email" ] || exit 0
+
+sob="Signed-off-by: $name <$email>"
+
+# 中文注释：-F 按普通字符串匹配，-x 要求整行完全一致，避免正则误判
+grep -Fqx "$sob" "$1" || printf '\n%s\n' "$sob" >> "$1"
