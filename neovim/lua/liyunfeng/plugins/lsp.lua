@@ -24,6 +24,7 @@
 return {
     "neovim/nvim-lspconfig",
     dependencies = {
+        "williamboman/mason.nvim",
         "hrsh7th/cmp-nvim-lsp",
     },
     -- event = "InsertEnter",
@@ -35,31 +36,14 @@ return {
     },
     event = "InsertLeave",
     config = function()
-        -- 移动到 cmp-lsp.lua 一起设置
-        -- Setup language servers.
-        -- local lspconfig = require("lspconfig")
-        -- 以下代码与上面手动实现的 autocmd 设置 clangd 的效果一样
-        -- lspconfig.clangd.setup({})
-        -- lspconfig.lua_ls.setup({})
-        -- lspconfig.lua_ls.setup({})
-        -- lspconfig.ocamlls.setup({})
-        -- 如果没有安装语言服务器，可以使用插件 mason 来自动安装语言服务
+        local capabilities = require("cmp_nvim_lsp").default_capabilities()
+        local servers = { "clangd", "lua_ls" }
 
-        -- lspconfig.pyright.setup {}
-        -- lspconfig.tsserver.setup {}
-        -- lspconfig.rust_analyzer.setup {
-        --     -- Server-specific settings. See `:help lspconfig-setup`
-        --     settings = {
-        --         ["rust-analyzer"] = {},
-        --     },
-        -- }
-
-
-        -- Global mappings.
-        -- See `:help vim.diagnostic.*` for documentation on any of the below functions
-        -- vim.keymap.set("n", "<space>e", vim.diagnostic.open_float)
-        -- vim.keymap.set("n", "[d", vim.diagnostic.goto_prev)
-        -- vim.keymap.set("n", "]d", vim.diagnostic.goto_next)
-        -- vim.keymap.set("n", "<space>q", vim.diagnostic.setloclist)
+        for _, server in ipairs(servers) do
+            vim.lsp.config(server, {
+                capabilities = capabilities,
+            })
+            vim.lsp.enable(server)
+        end
     end,
 }
