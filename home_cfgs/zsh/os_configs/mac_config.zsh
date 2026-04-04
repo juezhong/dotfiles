@@ -60,6 +60,11 @@ fi
 if [[ -e "$ZSH_HOME/self_env.zsh" ]]; then
 	source "$ZSH_HOME/self_env.zsh"
 fi
+
+if [[ -e "$ZSH_HOME/self_functions.zsh" ]]; then
+	source "$ZSH_HOME/self_functions.zsh"
+fi
+
 export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
 export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
 export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
