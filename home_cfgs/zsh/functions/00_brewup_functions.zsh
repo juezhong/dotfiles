@@ -192,7 +192,23 @@ _brewup_history_file() {
 # 内部函数：批次 ID
 # -----------------------------
 _brewup_batch_id() {
-    printf "batch-%s-%d-%04d\n" "$(date '+%Y%m%d%H%M%S')" "$$" "$RANDOM"
+    local pkg="$1"
+    local safe_pkg="${pkg//[^A-Za-z0-9._-]/-}"
+    local short_hash=""
+
+    [[ -n "$safe_pkg" ]] || safe_pkg="brewup"
+
+    if (( $+commands[md5] )); then
+        short_hash="$(
+            printf '%s' "$safe_pkg-$PPID-$$-$RANDOM" | command md5 -q | awk '{print substr($1, 1, 6)}'
+        )"
+    else
+        short_hash="$(
+            printf '%s' "$safe_pkg-$PPID-$$-$RANDOM" | command cksum | awk '{print substr($1, 1, 6)}'
+        )"
+    fi
+
+    printf "%s-%s\n" "$safe_pkg" "$short_hash"
 }
 
 # -----------------------------
@@ -1103,11 +1119,11 @@ brewup() {
     esac
 
     local overall_rc=0
-    local batch_id
     local pkg=""
-    batch_id="$(_brewup_batch_id)"
 
     for pkg in "$@"; do
+        local batch_id
+        batch_id="$(_brewup_batch_id "$pkg")"
         echo "🚀 开始处理: $pkg"
         _brewup_one "$batch_id" "$pkg"
         local rc=$?
