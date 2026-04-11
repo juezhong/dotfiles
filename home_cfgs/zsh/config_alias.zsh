@@ -12,23 +12,14 @@ alias grep='grep --color=auto'
 alias rg='rg -S'
 alias tree='tree -C'
 alias pp='export "${proxy_all[@]}"'
-alias pph='export "${proxy_http[@]}"'
-alias up='unset ALL_PROXY HTTP_PROXY HTTPS_PROXY'
+alias up='unset https_proxy http_proxy all_proxy'
 alias cb='cmake -B build'
 alias cc='cmake --build build'
 alias rb='rm -r build'
 alias ttytheme='ttyscheme -a $(ttyscheme -l | fzf)'
 alias cman='man -L zh_CN'
-alias vim='nvim'
-alias vi='vim'
-alias v='vi'
+alias v='nvim'
 alias lg='LANG=zh-CN lazygit'
-
-
-
-
-
-
 
 ### 同样由于三个系统上可能命令不同，alias 的命令也不同
 if [[ "$os_type" == "Darwin" ]]; then
@@ -85,10 +76,5 @@ elif [[ "$os_type" == CYGWIN* || "$os_type" == MINGW* ]]; then
   # echo "This is Windows (Cygwin/Mingw)."
 fi
 
-
-
-
-
-
-
 ### End of alias
+
