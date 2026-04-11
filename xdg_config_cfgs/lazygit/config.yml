@@ -1,0 +1,4 @@
+git:
+  commit:
+    signOff: true
+  autoFetch: false
