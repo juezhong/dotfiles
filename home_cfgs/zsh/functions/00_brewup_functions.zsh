@@ -189,6 +189,13 @@ _brewup_history_file() {
 }
 
 # -----------------------------
+# 内部函数：批次 ID
+# -----------------------------
+_brewup_batch_id() {
+    printf "batch-%s-%d-%04d\n" "$(date '+%Y%m%d%H%M%S')" "$$" "$RANDOM"
+}
+
+# -----------------------------
 # 内部函数：按月目录
 # -----------------------------
 _brewup_month_dir() {
@@ -208,7 +215,7 @@ _brewup_init_env() {
 
     if [[ ! -f "$history_file" ]]; then
         _brewup_log_info "history 文件不存在，初始化表头"
-        _brewup_write_file "$history_file" $'timestamp\tpackage\ttype\tbefore\tafter\tresult\tmacos\tbrew\tlog_file\tfail_reason\n'
+        _brewup_write_file "$history_file" $'timestamp\tbatch_id\tpackage\ttype\ttrigger\ttriggered_by\tbefore\tafter\tresult\tmacos\tbrew\tlog_file\tfail_reason\n'
     fi
 }
 
@@ -251,14 +258,22 @@ _brewup_get_version() {
     local pkg="$1"
     local pkg_type="$2"
     local ver=""
+    local opt_target=""
 
     if [[ "$pkg_type" == "cask" ]]; then
         ver="$(brew list --cask --versions "$pkg" 2>/dev/null | awk '{print $2}')"
     else
-        ver="$(
-            brew info --json=v2 "$pkg" 2>/dev/null | \
-            awk -F '"' '/"linked_keg":/ { if ($4 != "") { print $4; exit } }'
-        )"
+        opt_target="$(command readlink "/opt/homebrew/opt/$pkg" 2>/dev/null)"
+        if [[ -n "$opt_target" ]]; then
+            ver="${opt_target:t}"
+        fi
+
+        if [[ -z "$ver" ]]; then
+            ver="$(
+                brew info --json=v2 "$pkg" 2>/dev/null | \
+                awk -F '"' '/"linked_keg":/ { if ($4 != "") { print $4; exit } }'
+            )"
+        fi
 
         if [[ -z "$ver" ]]; then
             ver="$(brew list --versions "$pkg" 2>/dev/null | awk '{print $NF}')"
@@ -275,26 +290,36 @@ _brewup_append_history() {
     local history_file="$(_brewup_history_file)"
 
     local timestamp="$1"
-    local pkg="$2"
-    local pkg_type="$3"
-    local before_version="$4"
-    local after_version="$5"
-    local result="$6"
-    local macos_version="$7"
-    local brew_version="$8"
-    local log_file="$9"
-    local fail_reason="${10}"
+    local batch_id="$2"
+    local pkg="$3"
+    local pkg_type="$4"
+    local trigger="$5"
+    local triggered_by="$6"
+    local before_version="$7"
+    local after_version="$8"
+    local result="$9"
+    local macos_version="${10}"
+    local brew_version="${11}"
+    local log_file="${12}"
+    local fail_reason="${13}"
 
+    local safe_batch_id safe_trigger safe_triggered_by
     local safe_fail_reason safe_log_file safe_brew_version line
+    safe_batch_id="${batch_id//$'\t'/ }"
+    safe_trigger="${trigger//$'\t'/ }"
+    safe_triggered_by="${triggered_by//$'\t'/ }"
     safe_fail_reason="${fail_reason//$'\t'/ }"
     safe_fail_reason="${safe_fail_reason//$'\n'/ }"
     safe_log_file="${log_file//$'\t'/ }"
     safe_brew_version="${brew_version//$'\t'/ }"
 
-    line="$(printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" \
+    line="$(printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" \
         "$timestamp" \
+        "$safe_batch_id" \
         "$pkg" \
         "$pkg_type" \
+        "$safe_trigger" \
+        "$safe_triggered_by" \
         "$before_version" \
         "$after_version" \
         "$result" \
@@ -308,10 +333,477 @@ _brewup_append_history() {
 }
 
 # -----------------------------
+# 批量记录 formula 当前版本
+# -----------------------------
+_brewup_append_formula_versions() {
+    local dst="$1"
+    shift
+    (( $# > 0 )) || return 0
+    (( $+commands[brew] )) || return 1
+    (( $+commands[jq] )) || return 1
+
+    command brew info --json=v2 "$@" 2>/dev/null | command jq -r '
+        .formulae[]? | [.name, ((.installed | length) > 0), (.linked_keg // "")] | @tsv
+    ' | while IFS=$'\t' read -r pkg installed_flag linked_keg; do
+        local current_version=""
+        local opt_target=""
+
+        if [[ "$installed_flag" != "true" ]]; then
+            current_version="-"
+        else
+            opt_target="$(command readlink "/opt/homebrew/opt/$pkg" 2>/dev/null)"
+            if [[ -n "$opt_target" ]]; then
+                current_version="${opt_target:t}"
+            elif [[ -n "$linked_keg" ]]; then
+                current_version="$linked_keg"
+            else
+                current_version="$(brew list --versions "$pkg" 2>/dev/null | awk '{print $NF}')"
+            fi
+
+            [[ -n "$current_version" ]] || current_version="unknown"
+        fi
+
+        printf "formula\t%s\t%s\n" "$pkg" "$current_version"
+    done >> "$dst"
+}
+
+# -----------------------------
+# 批量记录 cask 当前版本
+# -----------------------------
+_brewup_append_cask_versions() {
+    local dst="$1"
+    shift
+    (( $# > 0 )) || return 0
+    (( $+commands[brew] )) || return 1
+    (( $+commands[jq] )) || return 1
+
+    command brew info --json=v2 --cask "$@" 2>/dev/null | command jq -r '
+        .casks[]? |
+        [
+            .token,
+            (
+                if .installed == null then "-"
+                elif (.installed | type) == "array" then (.installed | join(","))
+                else (.installed | tostring)
+                end
+            )
+        ] | @tsv
+    ' | awk -F '\t' 'BEGIN { OFS="\t" } { print "cask", $1, ($2 == "" ? "-" : $2) }' >> "$dst"
+}
+
+# -----------------------------
+# 构建候选包图：
+# - 直接升级包
+# - 已安装 dependents
+# - 它们递归声明的依赖
+# -----------------------------
+_brewup_collect_candidate_graph() {
+    local nodes_file="$1"
+    local edges_file="$2"
+    local dependents_file="$3"
+    local pkg="$4"
+    local pkg_type="$5"
+    local dependent=""
+    local dependent_type=""
+
+    (( $+commands[brew] )) || return 1
+    (( $+commands[jq] )) || return 1
+
+    : > "$nodes_file"
+    : > "$edges_file"
+    : > "$dependents_file"
+
+    local -a formula_queue cask_queue next_formula_queue next_cask_queue dependents
+    local -a formula_roots cask_roots
+    local parent="" child="" child_type=""
+    local max_depth=2
+    local current_depth=0
+    typeset -A seen_formula seen_cask
+
+    if [[ "$pkg_type" == "formula" ]]; then
+        seen_formula[$pkg]=1
+        formula_queue+=("$pkg")
+        formula_roots+=("$pkg")
+        printf "formula\t%s\n" "$pkg" >> "$nodes_file"
+
+        dependents=("${(@f)$(command brew uses --installed "$pkg" 2>/dev/null)}")
+        for dependent in "${dependents[@]}"; do
+            [[ -n "$dependent" ]] || continue
+            dependent_type="$(_brewup_detect_type "$dependent")"
+            [[ "$dependent_type" == "unknown" ]] && continue
+
+            printf "%s\t%s\n" "$dependent_type" "$dependent" >> "$dependents_file"
+
+            if [[ "$dependent_type" == "formula" && -z "${seen_formula[$dependent]}" ]]; then
+                seen_formula[$dependent]=1
+                formula_queue+=("$dependent")
+                formula_roots+=("$dependent")
+                printf "formula\t%s\n" "$dependent" >> "$nodes_file"
+            elif [[ "$dependent_type" == "cask" && -z "${seen_cask[$dependent]}" ]]; then
+                seen_cask[$dependent]=1
+                cask_queue+=("$dependent")
+                cask_roots+=("$dependent")
+                printf "cask\t%s\n" "$dependent" >> "$nodes_file"
+            fi
+        done
+    else
+        seen_cask[$pkg]=1
+        cask_queue+=("$pkg")
+        cask_roots+=("$pkg")
+        printf "cask\t%s\n" "$pkg" >> "$nodes_file"
+    fi
+
+    formula_roots=("${(@u)formula_roots}")
+    cask_roots=("${(@u)cask_roots}")
+
+    for parent in "${formula_roots[@]}"; do
+        while IFS= read -r child; do
+            [[ -n "$child" ]] || continue
+            printf "formula\t%s\n" "$child" >> "$nodes_file"
+        done < <(command brew deps "$parent" 2>/dev/null)
+    done
+
+    while (( (${#formula_queue[@]} > 0 || ${#cask_queue[@]} > 0) && current_depth < max_depth )); do
+        if (( ${#formula_queue[@]} > 0 )); then
+            next_formula_queue=()
+
+            while IFS=$'\t' read -r parent child child_type; do
+                [[ -n "$parent" && -n "$child" ]] || continue
+                printf "%s\t%s\n" "$parent" "$child" >> "$edges_file"
+
+                if [[ "$child_type" == "formula" && -z "${seen_formula[$child]}" ]]; then
+                    seen_formula[$child]=1
+                    next_formula_queue+=("$child")
+                    printf "formula\t%s\n" "$child" >> "$nodes_file"
+                fi
+            done < <(
+                command brew info --json=v2 "${formula_queue[@]}" 2>/dev/null | command jq -r '
+                    .formulae[]? |
+                    .name as $parent |
+                    .dependencies[]? |
+                    [$parent, ., "formula"] | @tsv
+                '
+            )
+        else
+            next_formula_queue=()
+        fi
+
+        if (( ${#cask_queue[@]} > 0 )); then
+            next_cask_queue=()
+
+            while IFS=$'\t' read -r parent child child_type; do
+                [[ -n "$parent" && -n "$child" && -n "$child_type" ]] || continue
+                printf "%s\t%s\n" "$parent" "$child" >> "$edges_file"
+
+                if [[ "$child_type" == "formula" && -z "${seen_formula[$child]}" ]]; then
+                    seen_formula[$child]=1
+                    next_formula_queue+=("$child")
+                    printf "formula\t%s\n" "$child" >> "$nodes_file"
+                elif [[ "$child_type" == "cask" && -z "${seen_cask[$child]}" ]]; then
+                    seen_cask[$child]=1
+                    next_cask_queue+=("$child")
+                    printf "cask\t%s\n" "$child" >> "$nodes_file"
+                fi
+            done < <(
+                command brew info --json=v2 --cask "${cask_queue[@]}" 2>/dev/null | command jq -r '
+                    .casks[]? |
+                    .token as $parent |
+                    (
+                        ((.depends_on.formula // [])[]? | [$parent, ., "formula"]),
+                        ((.depends_on.cask // [])[]? | [$parent, ., "cask"])
+                    ) | @tsv
+                '
+            )
+        else
+            next_cask_queue=()
+        fi
+
+        formula_queue=("${(@u)next_formula_queue}")
+        cask_queue=("${(@u)next_cask_queue}")
+        (( current_depth++ ))
+    done
+
+    command sort -u "$nodes_file" -o "$nodes_file"
+    command sort -u "$edges_file" -o "$edges_file"
+    command sort -u "$dependents_file" -o "$dependents_file"
+}
+
+# -----------------------------
+# 根据候选包图记录版本快照
+# -----------------------------
+_brewup_write_version_snapshot() {
+    local snapshot_file="$1"
+    local nodes_file="$2"
+    local pkg_type=""
+    local pkg=""
+    local -a formula_pkgs cask_pkgs
+
+    [[ -f "$nodes_file" ]] || return 1
+
+    : > "$snapshot_file"
+
+    while IFS=$'\t' read -r pkg_type pkg; do
+        [[ -n "$pkg" ]] || continue
+        if [[ "$pkg_type" == "formula" ]]; then
+            formula_pkgs+=("$pkg")
+        elif [[ "$pkg_type" == "cask" ]]; then
+            cask_pkgs+=("$pkg")
+        fi
+    done < "$nodes_file"
+
+    formula_pkgs=("${(@u)formula_pkgs}")
+    cask_pkgs=("${(@u)cask_pkgs}")
+
+    _brewup_append_formula_versions "$snapshot_file" "${formula_pkgs[@]}" || return 1
+    _brewup_append_cask_versions "$snapshot_file" "${cask_pkgs[@]}" || return 1
+}
+
+# -----------------------------
+# 从快照中读取指定包版本
+# -----------------------------
+_brewup_snapshot_get_version() {
+    local snapshot_file="$1"
+    local pkg="$2"
+
+    [[ -f "$snapshot_file" ]] || {
+        echo "unknown"
+        return 1
+    }
+
+    awk -F '\t' -v p="$pkg" '$2 == p { print $3; exit }' "$snapshot_file"
+}
+
+# -----------------------------
+# 从本次 transcript 提取实际依赖归属
+# -----------------------------
+_brewup_collect_transcript_dependency_edges() {
+    local transcript_file="$1"
+
+    [[ -f "$transcript_file" ]] || return 0
+
+    sed -nE 's/^==> Installing ([^[:space:]]+) dependency: (.+)$/\1\t\2/p' "$transcript_file" | \
+        command sort -u
+}
+
+# -----------------------------
+# 根据前后快照和包图记录 related history
+# -----------------------------
+_brewup_append_related_history() {
+    local before_snapshot_file="$1"
+    local after_snapshot_file="$2"
+    local edges_file="$3"
+    local dependents_file="$4"
+    local direct_pkg="$5"
+    local timestamp="$6"
+    local batch_id="$7"
+    local macos_version="$8"
+    local brew_version="$9"
+    local final_log_file="${10}"
+    local transcript_file="${11}"
+
+    [[ -f "$before_snapshot_file" && -f "$after_snapshot_file" ]] || return 0
+
+    local pkg_type=""
+    local pkg=""
+    local before_version=""
+    local after_version=""
+    local parent=""
+    local triggered_by=""
+    local trigger=""
+    local root=""
+    local root_type=""
+    local maybe_parent=""
+    local -a root_candidates direct_changed_parents fallback_changed_roots
+    local -a changed_formula_targets
+    typeset -A snapshot_type before_map after_map dependent_map changed_map parent_map root_formula_closure runtime_parent_map transcript_parent_map
+
+    while IFS=$'\t' read -r pkg_type pkg before_version; do
+        [[ -n "$pkg" ]] || continue
+        snapshot_type[$pkg]="$pkg_type"
+        before_map[$pkg]="$before_version"
+    done < "$before_snapshot_file"
+
+    while IFS=$'\t' read -r pkg_type pkg after_version; do
+        [[ -n "$pkg" ]] || continue
+        after_map[$pkg]="$after_version"
+        if [[ "$pkg" != "$direct_pkg" && "$after_version" != "${before_map[$pkg]}" ]]; then
+            changed_map[$pkg]=1
+        fi
+    done < "$after_snapshot_file"
+
+    while IFS=$'\t' read -r pkg_type pkg; do
+        [[ -n "$pkg" ]] || continue
+        dependent_map[$pkg]=1
+        if [[ -n "${changed_map[$pkg]}" ]]; then
+            root_candidates+=("$pkg")
+        fi
+    done < "$dependents_file"
+
+    while IFS=$'\t' read -r pkg_type pkg after_version; do
+        [[ "$pkg_type" == "formula" ]] || continue
+        [[ "$pkg" == "$direct_pkg" && "${snapshot_type[$direct_pkg]}" != "formula" ]] && continue
+        if [[ "$pkg" == "$direct_pkg" || -n "${changed_map[$pkg]}" ]]; then
+            changed_formula_targets+=("$pkg")
+        fi
+    done < "$after_snapshot_file"
+
+    changed_formula_targets=("${(@u)changed_formula_targets}")
+
+    if [[ -f "$transcript_file" ]]; then
+        while IFS=$'\t' read -r parent pkg; do
+            [[ -n "$parent" && -n "$pkg" ]] || continue
+            if [[ -n "${transcript_parent_map[$pkg]}" ]]; then
+                transcript_parent_map[$pkg]+=$'\n'"$parent"
+            else
+                transcript_parent_map[$pkg]="$parent"
+            fi
+        done < <(_brewup_collect_transcript_dependency_edges "$transcript_file")
+    fi
+
+    if (( ${#changed_formula_targets[@]} > 0 )); then
+        while IFS=$'\t' read -r parent pkg; do
+            [[ -n "$parent" && -n "$pkg" ]] || continue
+            if [[ -n "${runtime_parent_map[$pkg]}" ]]; then
+                runtime_parent_map[$pkg]+=$'\n'"$parent"
+            else
+                runtime_parent_map[$pkg]="$parent"
+            fi
+        done < <(
+            command brew info --json=v2 "${changed_formula_targets[@]}" 2>/dev/null | command jq -r '
+                .formulae[]? |
+                .name as $parent |
+                .installed[-1].runtime_dependencies[]?.full_name |
+                [$parent, .] | @tsv
+            '
+        )
+    fi
+
+    if [[ "${snapshot_type[$direct_pkg]}" == "formula" || "${snapshot_type[$direct_pkg]}" == "cask" ]]; then
+        root_candidates+=("$direct_pkg")
+    fi
+
+    root_candidates=("${(@u)root_candidates}")
+
+    for root in "${root_candidates[@]}"; do
+        root_type="${snapshot_type[$root]}"
+        if [[ "$root_type" == "formula" ]]; then
+            while IFS= read -r pkg; do
+                [[ -n "$pkg" ]] || continue
+                root_formula_closure[$root:$pkg]=1
+            done < <(command brew deps "$root" 2>/dev/null)
+        fi
+    done
+
+    while IFS=$'\t' read -r parent pkg; do
+        [[ -n "$parent" && -n "$pkg" ]] || continue
+        if [[ -n "${parent_map[$pkg]}" ]]; then
+            parent_map[$pkg]+=$'\n'"$parent"
+        else
+            parent_map[$pkg]="$parent"
+        fi
+    done < "$edges_file"
+
+    while IFS=$'\t' read -r pkg_type pkg before_version; do
+        [[ -n "$pkg" ]] || continue
+        [[ "$pkg" == "$direct_pkg" ]] && continue
+
+        after_version="${after_map[$pkg]}"
+        [[ -n "$after_version" ]] || continue
+        [[ "$after_version" == "$before_version" ]] && continue
+
+        if [[ -n "${dependent_map[$pkg]}" ]]; then
+            trigger="dependent"
+            triggered_by="$direct_pkg"
+        else
+            trigger="dependency"
+            triggered_by=""
+            direct_changed_parents=()
+
+            if [[ -n "${transcript_parent_map[$pkg]}" ]]; then
+                for maybe_parent in ${(f)transcript_parent_map[$pkg]}; do
+                    if [[ "$maybe_parent" == "$direct_pkg" || -n "${changed_map[$maybe_parent]}" ]]; then
+                        direct_changed_parents+=("$maybe_parent")
+                    fi
+                done
+            elif [[ -n "${runtime_parent_map[$pkg]}" ]]; then
+                direct_changed_parents=("${(@f)runtime_parent_map[$pkg]}")
+            elif [[ -n "${parent_map[$pkg]}" ]]; then
+                for maybe_parent in ${(f)parent_map[$pkg]}; do
+                    if [[ "$maybe_parent" == "$direct_pkg" || -n "${changed_map[$maybe_parent]}" ]]; then
+                        direct_changed_parents+=("$maybe_parent")
+                    fi
+                done
+            fi
+
+            direct_changed_parents=("${(@ou)direct_changed_parents}")
+
+            if (( ${#direct_changed_parents[@]} > 0 )); then
+                triggered_by="${(j:,:)direct_changed_parents}"
+            fi
+
+            if [[ -z "$triggered_by" ]]; then
+                fallback_changed_roots=()
+                for root in "${root_candidates[@]}"; do
+                    [[ "$root" == "$pkg" ]] && continue
+                    if [[ -n "${root_formula_closure[$root:$pkg]}" ]]; then
+                        fallback_changed_roots+=("$root")
+                    fi
+                done
+                fallback_changed_roots=("${(@ou)fallback_changed_roots}")
+                if (( ${#fallback_changed_roots[@]} > 0 )); then
+                    triggered_by="${(j:,:)fallback_changed_roots}"
+                fi
+            fi
+
+            if [[ -z "$triggered_by" && -n "${parent_map[$pkg]}" ]]; then
+                parent="${${(f)parent_map[$pkg]}[1]}"
+                [[ -n "$parent" ]] && triggered_by="$parent"
+            fi
+
+            [[ -n "$triggered_by" ]] || triggered_by="$direct_pkg"
+        fi
+
+        _brewup_append_history \
+            "$timestamp" \
+            "$batch_id" \
+            "$pkg" \
+            "${snapshot_type[$pkg]}" \
+            "$trigger" \
+            "$triggered_by" \
+            "$before_version" \
+            "$after_version" \
+            "SUCCESS" \
+            "${macos_version:-unknown}" \
+            "${brew_version:-unknown}" \
+            "$final_log_file" \
+            "-"
+    done < "$before_snapshot_file"
+}
+
+# -----------------------------
+# 历史记录展示时翻译触发方式
+# -----------------------------
+_brewup_render_history() {
+    local history_file="$1"
+
+    awk -F '\t' '
+        BEGIN { OFS = "\t" }
+        NR == 1 { print; next }
+        {
+            if ($5 == "direct") $5 = "主动升级"
+            else if ($5 == "dependency") $5 = "依赖连带升级"
+            else if ($5 == "dependent") $5 = "依赖方连带升级"
+            print
+        }
+    ' "$history_file"
+}
+
+# -----------------------------
 # 单包升级
 # -----------------------------
 _brewup_one() {
-    local pkg="$1"
+    local batch_id="$1"
+    local pkg="$2"
 
     _brewup_init_env
 
@@ -344,13 +836,21 @@ _brewup_one() {
     brew_version="$(brew --version 2>/dev/null | head -n1)"
 
     local before_version after_version
-    before_version="$(_brewup_get_version "$pkg" "$pkg_type")"
+    before_version="unknown"
     after_version="unknown"
 
     local final_log_file tmp_log_file raw_output_file
+    local candidate_nodes_file="" candidate_edges_file="" candidate_dependents_file=""
+    local before_snapshot_file="" after_snapshot_file=""
+    local relation_tracking_available=1
     final_log_file="$month_dir/${pkg}.log"
     tmp_log_file="$month_dir/.${pkg}.log.tmp.$$"
     raw_output_file="$(_brewup_mktemp "/tmp/brewup.${pkg}.XXXXXX")"
+    candidate_nodes_file="$(_brewup_mktemp "/tmp/brewup.nodes.${pkg}.XXXXXX")"
+    candidate_edges_file="$(_brewup_mktemp "/tmp/brewup.edges.${pkg}.XXXXXX")"
+    candidate_dependents_file="$(_brewup_mktemp "/tmp/brewup.dependents.${pkg}.XXXXXX")"
+    before_snapshot_file="$(_brewup_mktemp "/tmp/brewup.before.${pkg}.XXXXXX")"
+    after_snapshot_file="$(_brewup_mktemp "/tmp/brewup.after.${pkg}.XXXXXX")"
 
     local interrupted=0
     local user_cancelled=0
@@ -364,12 +864,43 @@ _brewup_one() {
         _brewup_log_warn "检测到 Ctrl+C，已中断升级并清理本次日志: $pkg"
         _brewup_rm "$tmp_log_file"
         _brewup_rm "$raw_output_file"
+        _brewup_rm "$candidate_nodes_file"
+        _brewup_rm "$candidate_edges_file"
+        _brewup_rm "$candidate_dependents_file"
+        _brewup_rm "$before_snapshot_file"
+        _brewup_rm "$after_snapshot_file"
         trap - INT
         return 130
     }
 
     trap _brewup_cleanup_interrupt INT
     trap_installed=1
+
+    if ! _brewup_collect_candidate_graph \
+        "$candidate_nodes_file" \
+        "$candidate_edges_file" \
+        "$candidate_dependents_file" \
+        "$pkg" \
+        "$pkg_type"; then
+        relation_tracking_available=0
+        _brewup_log_warn "无法构建候选包图，将只记录直接升级包"
+        _brewup_write_file "$candidate_nodes_file" "$(printf "%s\t%s\n" "$pkg_type" "$pkg")"
+        _brewup_write_file "$candidate_edges_file" ""
+        _brewup_write_file "$candidate_dependents_file" ""
+    fi
+
+    if ! _brewup_write_version_snapshot "$before_snapshot_file" "$candidate_nodes_file"; then
+        relation_tracking_available=0
+        _brewup_log_warn "无法生成升级前快照，将只记录直接升级包"
+        before_version="$(_brewup_get_version "$pkg" "$pkg_type")"
+        _brewup_write_file "$candidate_nodes_file" "$(printf "%s\t%s\n" "$pkg_type" "$pkg")"
+        _brewup_write_file "$candidate_edges_file" ""
+        _brewup_write_file "$candidate_dependents_file" ""
+        _brewup_write_file "$before_snapshot_file" "$(printf "%s\t%s\t%s\n" "$pkg_type" "$pkg" "$before_version")"
+    fi
+
+    before_version="$(_brewup_snapshot_get_version "$before_snapshot_file" "$pkg")"
+    [[ -n "$before_version" ]] || before_version="$(_brewup_get_version "$pkg" "$pkg_type")"
 
     {
         echo "============================================================"
@@ -428,6 +959,11 @@ _brewup_one() {
         _brewup_log_warn "用户取消升级，已删除本次日志且不写入 history: $pkg"
         _brewup_rm "$tmp_log_file"
         _brewup_rm "$raw_output_file"
+        _brewup_rm "$candidate_nodes_file"
+        _brewup_rm "$candidate_edges_file"
+        _brewup_rm "$candidate_dependents_file"
+        _brewup_rm "$before_snapshot_file"
+        _brewup_rm "$after_snapshot_file"
 
         if [[ "$trap_installed" -eq 1 ]]; then
             trap - INT
@@ -438,7 +974,16 @@ _brewup_one() {
 
     _brewup_append_clean_transcript "$raw_output_file" "$tmp_log_file"
 
-    after_version="$(_brewup_get_version "$pkg" "$pkg_type")"
+    if [[ "$result" == "SUCCESS" ]]; then
+        if _brewup_write_version_snapshot "$after_snapshot_file" "$candidate_nodes_file"; then
+            after_version="$(_brewup_snapshot_get_version "$after_snapshot_file" "$pkg")"
+        else
+            relation_tracking_available=0
+            _brewup_log_warn "无法生成升级后快照，将跳过关联升级记录"
+        fi
+    fi
+
+    [[ -n "$after_version" && "$after_version" != "unknown" ]] || after_version="$(_brewup_get_version "$pkg" "$pkg_type")"
 
     if [[ "$result" == "FAILED" ]]; then
         fail_reason="$(
@@ -473,8 +1018,11 @@ _brewup_one() {
 
     _brewup_append_history \
         "$start_time" \
+        "$batch_id" \
         "$pkg" \
         "$pkg_type" \
+        "direct" \
+        "$pkg" \
         "$before_version" \
         "$after_version" \
         "$result" \
@@ -483,8 +1031,28 @@ _brewup_one() {
         "$final_log_file" \
         "$fail_reason"
 
+    if [[ "$result" == "SUCCESS" && "$relation_tracking_available" -eq 1 ]]; then
+        _brewup_append_related_history \
+            "$before_snapshot_file" \
+            "$after_snapshot_file" \
+            "$candidate_edges_file" \
+            "$candidate_dependents_file" \
+            "$pkg" \
+            "$start_time" \
+            "$batch_id" \
+            "${macos_version:-unknown}" \
+            "${brew_version:-unknown}" \
+            "$final_log_file" \
+            "$tmp_log_file"
+    fi
+
     _brewup_rm "$tmp_log_file"
     _brewup_rm "$raw_output_file"
+    _brewup_rm "$candidate_nodes_file"
+    _brewup_rm "$candidate_edges_file"
+    _brewup_rm "$candidate_dependents_file"
+    _brewup_rm "$before_snapshot_file"
+    _brewup_rm "$after_snapshot_file"
 
     if [[ "$trap_installed" -eq 1 ]]; then
         trap - INT
@@ -535,11 +1103,13 @@ brewup() {
     esac
 
     local overall_rc=0
+    local batch_id
     local pkg=""
+    batch_id="$(_brewup_batch_id)"
 
     for pkg in "$@"; do
         echo "🚀 开始处理: $pkg"
-        _brewup_one "$pkg"
+        _brewup_one "$batch_id" "$pkg"
         local rc=$?
 
         case "$rc" in
@@ -611,7 +1181,7 @@ _brewup_history_packages() {
     history_file="$(_brewup_history_file)"
     [[ -f "$history_file" ]] || return 1
 
-    packages=("${(@u)${(@f)$(awk -F '\t' 'NR > 1 && $2 != "" { print $2 }' "$history_file" 2>/dev/null)}}")
+    packages=("${(@u)${(@f)$(awk -F '\t' 'NR > 1 && $3 != "" { print $3 }' "$history_file" 2>/dev/null)}}")
     (( ${#packages[@]} > 0 )) || return 1
 
     compadd "$@" -- "${packages[@]}"
@@ -647,7 +1217,7 @@ brewup-history() {
         return 1
     fi
 
-    column -t -s $'\t' "$history_file"
+    _brewup_render_history "$history_file" | column -t -s $'\t'
 }
 
 # -----------------------------
@@ -675,7 +1245,7 @@ brewup-history-pkg() {
         return 1
     fi
 
-    awk -F '\t' -v p="$pkg" 'NR==1 || $2==p' "$history_file" | column -t -s $'\t'
+    _brewup_render_history "$history_file" | awk -F '\t' -v p="$pkg" 'NR==1 || $3==p' | column -t -s $'\t'
 }
 
 # -----------------------------
@@ -703,10 +1273,10 @@ brewup-stats() {
         NR==1 { next }
         {
             total++
-            pkg_count[$2]++
-            pkg_seen[$2]=1
-            if ($6=="SUCCESS") success++
-            else if ($6=="FAILED") failed++
+            pkg_count[$3]++
+            pkg_seen[$3]=1
+            if ($9=="SUCCESS") success++
+            else if ($9=="FAILED") failed++
         }
         END {
             pkg_total=0
@@ -724,7 +1294,7 @@ brewup-stats() {
 
     awk -F '\t' '
         NR==1 { next }
-        { pkg_count[$2]++ }
+        { pkg_count[$3]++ }
         END {
             for (p in pkg_count) {
                 printf "%s\t%d\n", p, pkg_count[p]
@@ -777,7 +1347,7 @@ brewup-history-tail() {
     fi
 
     {
-        head -n 1 "$history_file"
-        tail -n "$n" "$history_file"
+        _brewup_render_history "$history_file" | head -n 1
+        _brewup_render_history "$history_file" | tail -n "$n"
     } | column -t -s $'\t'
 }
