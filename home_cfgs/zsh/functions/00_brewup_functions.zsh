@@ -208,7 +208,7 @@ _brewup_init_env() {
 
     if [[ ! -f "$history_file" ]]; then
         _brewup_log_info "history 文件不存在，初始化表头"
-        _brewup_write_file "$history_file" $'date\ttime\tpackage\ttype\tbefore\tafter\tresult\tmacos\tarch\tbrew\tlog_file\tfail_reason\n'
+        _brewup_write_file "$history_file" $'timestamp\tpackage\ttype\tbefore\tafter\tresult\tmacos\tbrew\tlog_file\tfail_reason\n'
     fi
 }
 
@@ -274,18 +274,16 @@ _brewup_get_version() {
 _brewup_append_history() {
     local history_file="$(_brewup_history_file)"
 
-    local date_str="$1"
-    local time_str="$2"
-    local pkg="$3"
-    local pkg_type="$4"
-    local before_version="$5"
-    local after_version="$6"
-    local result="$7"
-    local macos_version="$8"
-    local arch_info="$9"
-    local brew_version="${10}"
-    local log_file="${11}"
-    local fail_reason="${12}"
+    local timestamp="$1"
+    local pkg="$2"
+    local pkg_type="$3"
+    local before_version="$4"
+    local after_version="$5"
+    local result="$6"
+    local macos_version="$7"
+    local brew_version="$8"
+    local log_file="$9"
+    local fail_reason="${10}"
 
     local safe_fail_reason safe_log_file safe_brew_version line
     safe_fail_reason="${fail_reason//$'\t'/ }"
@@ -293,16 +291,14 @@ _brewup_append_history() {
     safe_log_file="${log_file//$'\t'/ }"
     safe_brew_version="${brew_version//$'\t'/ }"
 
-    line="$(printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" \
-        "$date_str" \
-        "$time_str" \
+    line="$(printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" \
+        "$timestamp" \
         "$pkg" \
         "$pkg_type" \
         "$before_version" \
         "$after_version" \
         "$result" \
         "$macos_version" \
-        "$arch_info" \
         "$safe_brew_version" \
         "$safe_log_file" \
         "$safe_fail_reason")"
@@ -337,10 +333,8 @@ _brewup_one() {
     local pkg_type
     pkg_type="$(_brewup_detect_type "$pkg")"
 
-    local start_time start_date start_clock end_time
+    local start_time end_time
     start_time="$(date '+%Y-%m-%d %H:%M:%S')"
-    start_date="$(date '+%Y-%m-%d')"
-    start_clock="$(date '+%H:%M:%S')"
     end_time=""
 
     local macos_version kernel_version arch_info brew_version
@@ -478,15 +472,13 @@ _brewup_one() {
     _brewup_append_file "$tmp_log_file" "$final_log_file"
 
     _brewup_append_history \
-        "$start_date" \
-        "$start_clock" \
+        "$start_time" \
         "$pkg" \
         "$pkg_type" \
         "$before_version" \
         "$after_version" \
         "$result" \
         "${macos_version:-unknown}" \
-        "${arch_info:-unknown}" \
         "${brew_version:-unknown}" \
         "$final_log_file" \
         "$fail_reason"
@@ -520,7 +512,6 @@ _brewup_print_usage() {
     echo "历史命令:"
     echo "  brewup-history             查看完整历史"
     echo "  brewup-history-pkg <pkg>   查看指定包历史"
-    echo "  brewup-last <pkg>          查看指定包最后一次升级"
     echo "  brewup-history-tail [n]    查看最近 n 条历史，默认 10"
     echo "  brewup-stats               查看历史统计"
 }
@@ -576,6 +567,68 @@ brewup() {
 }
 
 # -----------------------------
+# brewup 补全：仅提示可更新的包
+# -----------------------------
+_brewup_outdated_packages() {
+    local -a formulae casks candidates filtered
+    local pkg=""
+    local i=0
+    typeset -A selected_map
+
+    (( $+commands[brew] )) || return 1
+
+    formulae=("${(@f)$(command brew outdated --formula --quiet 2>/dev/null)}")
+    casks=("${(@f)$(command brew outdated --cask --quiet 2>/dev/null)}")
+    candidates=("${(@u)formulae[@]}" "${(@u)casks[@]}")
+    candidates=("${(@u)candidates}")
+
+    for (( i = 2; i < CURRENT; i++ )); do
+        [[ -n "${words[i]}" ]] || continue
+        selected_map["${words[i]}"]=1
+    done
+
+    for pkg in "${candidates[@]}"; do
+        [[ -n "$pkg" ]] || continue
+        [[ -n "${selected_map[$pkg]}" ]] && continue
+        filtered+=("$pkg")
+    done
+
+    (( ${#filtered[@]} > 0 )) || return 1
+
+    compadd "$@" -- "${filtered[@]}"
+}
+
+_brewup_completion() {
+    _arguments -s \
+        '(-h --help)'{-h,--help}'[show usage]' \
+        '*:outdated package:_brewup_outdated_packages'
+}
+
+_brewup_history_packages() {
+    local history_file
+    local -a packages
+
+    history_file="$(_brewup_history_file)"
+    [[ -f "$history_file" ]] || return 1
+
+    packages=("${(@u)${(@f)$(awk -F '\t' 'NR > 1 && $2 != "" { print $2 }' "$history_file" 2>/dev/null)}}")
+    (( ${#packages[@]} > 0 )) || return 1
+
+    compadd "$@" -- "${packages[@]}"
+}
+
+_brewup_history_pkg_completion() {
+    _arguments -s \
+        '(-h --help)'{-h,--help}'[show usage]' \
+        '1:history package:_brewup_history_packages'
+}
+
+if (( $+functions[compdef] )); then
+    compdef _brewup_completion brewup
+    compdef _brewup_history_pkg_completion brewup-history-pkg
+fi
+
+# -----------------------------
 # 查看完整历史
 # -----------------------------
 brewup-history() {
@@ -622,42 +675,7 @@ brewup-history-pkg() {
         return 1
     fi
 
-    awk -F '\t' -v p="$pkg" 'NR==1 || $3==p' "$history_file" | column -t -s $'\t'
-}
-
-# -----------------------------
-# 查看某个包最后一次升级
-# -----------------------------
-brewup-last() {
-    case "${1:-}" in
-        -h|--help)
-            echo "用法: brewup-last <package>"
-            echo "说明: 查看指定包最后一次升级记录"
-            return 0
-            ;;
-    esac
-
-    local history_file="$(_brewup_history_file)"
-    local pkg="$1"
-
-    if [[ -z "$pkg" ]]; then
-        echo "用法: brewup-last <package>"
-        return 1
-    fi
-
-    if [[ ! -f "$history_file" ]]; then
-        echo "历史表不存在: $history_file"
-        return 1
-    fi
-
-    awk -F '\t' -v p="$pkg" '
-        NR==1 { header=$0; next }
-        $3==p { last=$0 }
-        END {
-            if (header != "") print header
-            if (last != "") print last
-        }
-    ' "$history_file" | column -t -s $'\t'
+    awk -F '\t' -v p="$pkg" 'NR==1 || $2==p' "$history_file" | column -t -s $'\t'
 }
 
 # -----------------------------
@@ -685,10 +703,10 @@ brewup-stats() {
         NR==1 { next }
         {
             total++
-            pkg_count[$3]++
-            pkg_seen[$3]=1
-            if ($7=="SUCCESS") success++
-            else if ($7=="FAILED") failed++
+            pkg_count[$2]++
+            pkg_seen[$2]=1
+            if ($6=="SUCCESS") success++
+            else if ($6=="FAILED") failed++
         }
         END {
             pkg_total=0
@@ -698,14 +716,44 @@ brewup-stats() {
             printf "成功次数      : %d\n", success+0
             printf "失败次数      : %d\n", failed+0
             printf "涉及包数量    : %d\n", pkg_total+0
+        }
+    ' "$history_file"
 
-            print ""
-            print "每个包升级次数:"
+    echo
+    echo "包升级次数:"
+
+    awk -F '\t' '
+        NR==1 { next }
+        { pkg_count[$2]++ }
+        END {
             for (p in pkg_count) {
                 printf "%s\t%d\n", p, pkg_count[p]
             }
         }
-    ' "$history_file" | column -t -s $'\t'
+    ' "$history_file" | sort -t $'\t' -k2,2nr -k1,1 | awk -F '\t' -v cols=9 '
+        {
+            item = sprintf("%s(%s)", $1, $2)
+            items[++count] = item
+            if (length(item) > max_width) {
+                max_width = length(item)
+            }
+        }
+        END {
+            if (count == 0) {
+                print "(empty)"
+                exit
+            }
+
+            cell_width = max_width + 2
+
+            for (i = 1; i <= count; i++) {
+                printf "%-*s", cell_width, items[i]
+                if (i % cols == 0 || i == count) {
+                    printf "\n"
+                }
+            }
+        }
+    '
 }
 
 # -----------------------------
