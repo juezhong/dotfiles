@@ -13,6 +13,155 @@ function _is_windows_like
     [[ "$os_type" == CYGWIN* || "$os_type" == MINGW* || "$os_type" == MSYS* ]]
 }
 
+# 缓存外部命令输出的 shell 初始化代码，减少每次启动重复 fork 的成本。
+function _source_cached_eval_output
+{
+    local cache_name="$1"
+    local dependency_path="$2"
+    shift 2
+
+    if [[ -z "$cache_name" || "$#" -eq 0 ]]; then
+        print -u2 -- "source_cached_eval_output: missing cache name or command"
+        return 1
+    fi
+
+    local cache_dir="${ZSH_HOME}/eval_code"
+    local cache_file="${cache_dir}/${cache_name}.zsh"
+    local temp_file="${cache_file}.tmp.$$"
+    local cache_signature="$*"
+    local should_regenerate=0
+    local existing_signature=""
+
+    command mkdir -p -- "$cache_dir" || return $?
+
+    if [[ ! -f "$cache_file" ]]; then
+        should_regenerate=1
+    else
+        IFS= read -r existing_signature < "$cache_file"
+        if [[ "$existing_signature" != "# cache-key: $cache_signature" ]]; then
+            should_regenerate=1
+        elif [[ -n "$dependency_path" && -e "$dependency_path" && "$dependency_path" -nt "$cache_file" ]]; then
+            should_regenerate=1
+        fi
+    fi
+
+    if (( should_regenerate )); then
+        print -r -- "# cache-key: $cache_signature" >| "$temp_file" || return $?
+        if ! "$@" >> "$temp_file"; then
+            command rm -f -- "$temp_file"
+            return 1
+        fi
+        command mv -f -- "$temp_file" "$cache_file" || return $?
+    fi
+
+    source "$cache_file"
+}
+
+function _nvm_alias_value
+{
+    local alias_name="$1"
+    local alias_file="${NVM_DIR}/alias/${alias_name}"
+    local alias_value=""
+
+    [[ -f "$alias_file" ]] || return 1
+
+    IFS= read -r alias_value < "$alias_file" || return 1
+    alias_value="${alias_value#"${alias_value%%[![:space:]]*}"}"
+    alias_value="${alias_value%"${alias_value##*[![:space:]]}"}"
+
+    [[ -n "$alias_value" ]] || return 1
+    print -r -- "$alias_value"
+}
+
+function _resolve_nvm_default_version
+{
+    export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+
+    local alias_name="default"
+    local alias_value=""
+    local max_depth=10
+
+    while (( max_depth > 0 )); do
+        alias_value="$(_nvm_alias_value "$alias_name")" || return 1
+
+        if [[ "$alias_value" == v* ]]; then
+            print -r -- "$alias_value"
+            return 0
+        fi
+
+        if [[ -d "${NVM_DIR}/versions/node/${alias_value}" ]]; then
+            print -r -- "$alias_value"
+            return 0
+        fi
+
+        alias_name="$alias_value"
+        (( max_depth-- ))
+    done
+
+    return 1
+}
+
+function _prepend_path_if_dir
+{
+    local target_dir="$1"
+
+    [[ -d "$target_dir" ]] || return 1
+
+    typeset -gU path PATH
+    path=("$target_dir" $path)
+    export PATH
+}
+
+function _setup_nvm_base_node_path
+{
+    export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+
+    local default_version=""
+    local node_bin=""
+
+    default_version="$(_resolve_nvm_default_version 2>/dev/null)"
+    if [[ -n "$default_version" ]]; then
+        node_bin="${NVM_DIR}/versions/node/${default_version}/bin"
+    fi
+
+    if [[ ! -d "$node_bin" ]]; then
+        local version_dir=""
+        for version_dir in "${NVM_DIR}"/versions/node/*(N/); do
+            node_bin="${version_dir}/bin"
+        done
+    fi
+
+    [[ -d "$node_bin" ]] || return 1
+
+    _prepend_path_if_dir "$node_bin" || return $?
+    typeset -g NVM_LAZY_DEFAULT_BIN="$node_bin"
+}
+
+function _load_nvm_lazy
+{
+    if [[ -n "${__nvm_lazy_loaded:-}" ]]; then
+        return 0
+    fi
+
+    export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+
+    local nvm_script="/opt/homebrew/opt/nvm/nvm.sh"
+    local nvm_completion="/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"
+
+    [[ -s "$nvm_script" ]] || return 1
+
+    \. "$nvm_script" --no-use || return $?
+    [[ -s "$nvm_completion" ]] && \. "$nvm_completion"
+
+    typeset -g __nvm_lazy_loaded=1
+}
+
+function nvm
+{
+    _load_nvm_lazy || return $?
+    nvm "$@"
+}
+
 # 从标准输入读取内容并复制到系统剪贴板。
 # 这里集中处理平台差异，业务函数只负责生成文本内容。
 function _copy_to_clipboard

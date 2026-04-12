@@ -1,6 +1,8 @@
 ### Mac 的 zsh 配置
 
-eval "$(/opt/homebrew/bin/brew shellenv)"
+if [[ -x /opt/homebrew/bin/brew ]]; then
+  _source_cached_eval_output "brew-shellenv" "/opt/homebrew/bin/brew" /opt/homebrew/bin/brew shellenv
+fi
 ## ## Disable brew auto update
 ## export HOMEBREW_NO_AUTO_UPDATE=1
 ## ## Disable brew auto cleanup
@@ -8,13 +10,15 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 ## ## Disable brew auto formul or cask when 'brew install'
 ## export HOMEBREW_NO_INSTALL_UPGRADE=1
 
+_setup_nvm_base_node_path
+
 ###
 ### Initialize the plugins installed via 'brew install'.
 ###
 # init fzf
 if command -v fzf > /dev/null 2>&1; then
     fzf_path=$(command -v fzf)
-    eval "$($fzf_path --zsh)"
+    _source_cached_eval_output "fzf-init" "$fzf_path" "$fzf_path" --zsh
 fi
 
 # init starship
@@ -28,7 +32,7 @@ if command -v starship > /dev/null 2>&1; then
     # 加载 starship
   fi
   ##eval "$($starship_path completions zsh)"
-  eval "$($starship_path init zsh)"
+  _source_cached_eval_output "starship-init" "$starship_path" "$starship_path" init zsh
 fi
 
 # init zoxide
@@ -36,19 +40,13 @@ fi
 if command -v zoxide > /dev/null 2>&1; then
   #echo "Command zoxide exists."
   zoxide_path=$(command -v zoxide)
-  eval "$($zoxide_path init zsh)"
+  _source_cached_eval_output "zoxide-init" "$zoxide_path" "$zoxide_path" init zsh
 fi
 
 # init uv
 if command -v uv > /dev/null 2>&1; then
-  eval "$(uv generate-shell-completion zsh)"
-fi
-
-#init nvm
-if [ -n "$(fd 'nvm.sh' /opt/homebrew -I 2>/dev/null)" ]; then
-  export NVM_DIR="$HOME/.nvm"
-  [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
-  [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
+  uv_path=$(command -v uv)
+  _source_cached_eval_output "uv-completion" "$uv_path" "$uv_path" generate-shell-completion zsh
 fi
 
 ###

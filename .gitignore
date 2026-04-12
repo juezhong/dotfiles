@@ -16,6 +16,7 @@ home_cfgs/zsh/.histfile
 home_cfgs/zsh/.zcompcache
 home_cfgs/zsh/.zsh_sessions
 home_cfgs/zsh/self_env.zsh
+home_cfgs/zsh/eval_code
 
 xdg_config_cfgs/raycast/
 xdg_config_cfgs/siyuan/
@@ -27,4 +28,4 @@ xdg_config_cfgs/fastfetch/
 # The following options are symbolic links.
 xdg_config_cfgs/zsh
 xdg_config_cfgs/nvim
-/xdg_config_cfgs/lazygit/macos_lazygit_config_path
+xdg_config_cfgs/lazygit/macos_lazygit_config_path
