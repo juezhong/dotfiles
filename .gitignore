@@ -8,15 +8,15 @@ emacs/tramp
 emacs/transient
 emacs/auto-save-list
 
-neovim/lazy-lock.json
+xdg_config_cfgs/nvim/lazy-lock.json
 
-home_cfgs/zsh/.zcompdump*
-home_cfgs/zsh/.zsh_history
-home_cfgs/zsh/.histfile
-home_cfgs/zsh/.zcompcache
-home_cfgs/zsh/.zsh_sessions
-home_cfgs/zsh/self_env.zsh
-home_cfgs/zsh/eval_code
+xdg_config_cfgs/zsh/.zcompdump*
+xdg_config_cfgs/zsh/.zsh_history
+xdg_config_cfgs/zsh/.histfile
+xdg_config_cfgs/zsh/.zcompcache
+xdg_config_cfgs/zsh/.zsh_sessions
+xdg_config_cfgs/zsh/self_env.zsh
+xdg_config_cfgs/zsh/eval_code
 
 xdg_config_cfgs/raycast/
 xdg_config_cfgs/siyuan/
@@ -24,8 +24,4 @@ xdg_config_cfgs/iterm2/
 xdg_config_cfgs/htop/
 xdg_config_cfgs/fastfetch/
 
-# 这个 zsh 目录是一个软链接
-# The following options are symbolic links.
-xdg_config_cfgs/zsh
-xdg_config_cfgs/nvim
 xdg_config_cfgs/lazygit/macos_lazygit_config_path
