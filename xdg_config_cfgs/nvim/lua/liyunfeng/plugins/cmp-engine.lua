@@ -77,7 +77,6 @@ return {
                         end
                     end,
                     s = cmp.mapping.confirm({ select = true }),
-                    c = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = true }),
                 }),
                 -- -- 使用 TAB 键展开代码片段
                 -- ['<Tab>'] = cmp.mapping(function(fallback)
@@ -103,7 +102,7 @@ return {
                     else
                         fallback() -- 如果没有可用的补全项，执行默认的 TAB 行为
                     end
-                end, { "i", "s", "c", }),
+                end, { "i", "s" }),
 
                 -- 使用 Shift+TAB 回到上一个位置
                 ['<S-Tab>'] = cmp.mapping(function(fallback)
@@ -232,20 +231,24 @@ return {
         -- `:` 命令模式下的补全配置
         cmp.setup.cmdline(":", {
             mapping = cmp.mapping.preset.cmdline(),
+            completion = {
+                -- 保留手动触发补全，避免 :q<CR> / :w<CR> 先确认候选再执行命令。
+                autocomplete = false,
+            },
             sources = cmp.config.sources(
                 -- group 1
-                {
-                    { name = "path" }, -- 从文件路径获取补全
-                    -- { name = "buffer" }
-                },
-                -- group 2
                 {
                     {
                         name = "cmdline",
                         option = {
-                            ignore_cmds = { "Man", "!" , "w"} -- 忽略某些命令不显示补全
+                            ignore_cmds = { "Man", "!" } -- 忽略某些命令不显示补全
                         }
                     },
+                },
+                -- group 2
+                {
+                    { name = "path" }, -- 从文件路径获取补全
+                    -- { name = "buffer" }
                 }
             ) -- end config.sources
         })
