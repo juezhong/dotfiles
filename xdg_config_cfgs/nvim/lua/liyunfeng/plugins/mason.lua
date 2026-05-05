@@ -11,7 +11,7 @@ return {
     -- 当前缀为 : 时，它是一个 Neovim 命令。您还可以指定一个列表来执行多个构建命令。
     -- 一些插件提供自己的 build.lua ，它会被 lazy 自动使用。因此无需为这些插件指定构建步骤。
     -- build = "echo 'export PATH=$PATH:~/.local/share/nvim/mason/bin/' >> ~/.zshrc",
-    build = "sh ~/mason_add_path.sh",
+    -- build = "sh ~/mason_add_path.sh",
     config = function()
         local mason = require("mason")
         mason.setup({
