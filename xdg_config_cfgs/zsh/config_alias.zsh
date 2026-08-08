@@ -25,7 +25,26 @@ if [[ "$os_type" == "Darwin" ]]; then
   alias xc='pbcopy'
   alias xp='pbpaste'
   if [[ -e /Users/liyunfeng/workspace/Chinese-Color/colors.txt ]]; then
-	  alias pick_colors='cat /Users/liyunfeng/workspace/Chinese-Color/colors.txt | fzf --ansi | cut -d ' ' -f 4 | xc'
+	  # alias pick_colors='cat /Users/liyunfeng/workspace/Chinese-Color/colors.txt | fzf --ansi | cut -d ' ' -f 4 | xc'
+      pick_colors() {
+          # # printf 只输出第 4 列内容，不自动追加换行。
+          # fzf --ansi -0 < /Users/liyunfeng/workspace/Chinese-Color/colors.txt \
+          #     | awk '{printf "%s", $4}' \
+          #     | pbcopy
+          local color
+
+          # 选择颜色并提取第 4 列
+          color="$(
+              fzf --ansi < /Users/liyunfeng/workspace/Chinese-Color/colors.txt \
+                  | awk '{print $4}'
+              )"
+
+          # 复制到 macOS 剪贴板，不附加换行
+          printf '%s' "$color" | pbcopy
+
+          # 给终端一个反馈
+          print "已复制颜色: $color"
+      }
   fi
 elif [[ "$os_type" == "Linux" ]]; then
   # echo "This is Linux."
