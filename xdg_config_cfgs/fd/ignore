@@ -1,2 +1,11 @@
-/System/Volumes/Data
-/Volumes
+**/System/Volumes/Data
+**/Volumes
+
+# macOS Data Volume，避免全盘搜索出现 /Users 的重复路径
+**/System/Volumes/Data/
+
+# 外接硬盘/挂载卷
+**/Volumes/
+
+# Git 元数据
+.git/
