@@ -56,6 +56,12 @@
 
 [keys]
 
+# Custom key overrides.
+focus_pane_left = "alt+h"
+focus_pane_down = "alt+j"
+focus_pane_up = "alt+k"
+focus_pane_right = "alt+l"
+
 [[keys.command]]
 key = "alt+1"
 type = "plugin_action"
@@ -280,7 +286,7 @@ description = "Refresh automatic tab titles"
 
 [ui]
 # Sidebar width (auto-scaled based on workspace names, this sets the default)
-# sidebar_width = 26
+sidebar_width = 33
 
 # Minimum sidebar width when expanded (columns)
 # sidebar_min_width = 18
@@ -358,12 +364,18 @@ description = "Refresh automatic tab titles"
 
 # Desktop tab row placement: "top" or "bottom".
 # tab_bar_position = "top"
+tab_bar_position = "bottom"
 
 # Ordered status entries at the right edge of the desktop tab bar.
 # Supported types: zoom, hostname, datetime, text, and command.
 # Hostname, datetime, and command entries resolve on the Herdr server.
 # tab_bar_right = []
 # tab_bar_right_separator = " "
+tab_bar_right = [
+{ type = "zoom" },
+{ type = "hostname" },
+{ type = "datetime", format = "%H:%M %Y-%m-%d" },
+]
 
 # Title Herdr writes to the terminal it runs in, which is what window managers
 # show in title, tab, and group bars. Tokens are {hostname}, {workspace}, {tab},
