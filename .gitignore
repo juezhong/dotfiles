@@ -24,6 +24,11 @@ xdg_config_cfgs/iterm2/
 xdg_config_cfgs/htop/
 xdg_config_cfgs/fastfetch/
 
-xdg_config_cfgs/lazygit/macos_lazygit_config_path
+# lazygit style
+/xdg_config_cfgs/lazygit/macos_lazygit_config_path
 /xdg_config_cfgs/crossnote
 /xdg_config_cfgs/tigervnc/default.tigervnc
+/xdg_config_cfgs/homebrew/trust.json*
+/xdg_config_cfgs/herdr/*.log
+/xdg_config_cfgs/herdr/*.lock
+/xdg_config_cfgs/herdr/*.json
